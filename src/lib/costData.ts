@@ -236,12 +236,8 @@ export function calculateCostSavings(
     cateringReduction += MAX_SAVINGS_POTENTIAL.catering.localSeasonal;
   }
 
-  // Beverage optimization
-  const bevCount = (carbonInputs.fnb.water ? 1 : 0) + (carbonInputs.fnb.coffee ? 1 : 0) +
-                   (carbonInputs.fnb.softDrinks ? 1 : 0) + (carbonInputs.fnb.alcohol ? 1 : 0);
-  if (bevCount <= 2) {
-    cateringReduction += MAX_SAVINGS_POTENTIAL.catering.portionOptimization * 0.5;
-  }
+  // Portion optimization baseline (always applied at 50% assumption)
+  cateringReduction += MAX_SAVINGS_POTENTIAL.catering.portionOptimization * 0.5;
 
   // Scale by catering cost per person (higher = more savings potential)
   const cateringPerPerson = costInputs.cateringCost / attendees;
@@ -264,7 +260,7 @@ export function calculateCostSavings(
   }
 
   // Distance factor - longer distances have more savings potential
-  const avgDistanceKm = carbonInputs.transport.avgDistanceKm || 50;
+  const avgDistanceKm = carbonInputs.transport.avgDistance || 50;
   const distanceMultiplier = Math.min(avgDistanceKm / 100, 1.3);
 
   transportReduction = Math.min(transportReduction * sustainabilityMultiplier * distanceMultiplier, 0.55);

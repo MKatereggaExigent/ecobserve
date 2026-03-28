@@ -12,6 +12,7 @@ export interface FnBData {
   mealType: string;
   beverages: string;
   catering: string;
+  localSourcing?: boolean; // For cost savings calculator
 }
 
 export interface TransportData {
