@@ -16,11 +16,17 @@ export const submitOnboardingValidation = [
   body('primaryContactEmail').isEmail().withMessage('Valid email is required'),
 ];
 
-export async function submitOnboarding(req: Request, res: Response) {
+export async function submitOnboarding(req: Request, res: Response): Promise<void> {
   try {
+    if (!req.user?.userId || !req.organizationId) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      res.status(400).json({ errors: errors.array() });
+      return;
     }
 
     const {
@@ -59,7 +65,7 @@ export async function submitOnboarding(req: Request, res: Response) {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
       RETURNING *`,
       [
-        req.organizationId, req.userId, companySize, industry, currentTools || [],
+        req.organizationId, req.user.userId, companySize, industry, currentTools || [],
         primaryGoals, expectedEventsPerYear, teamSize, locations || 1,
         requiresApi || false, requiresOnpremise || false, requiresSso || false, requiresCustomBranding || false,
         integrationNeeds || [], complianceStandards || [], reportingFrequency, customRequirements,
@@ -176,11 +182,17 @@ export const submitFeatureRequestValidation = [
   body('useCase').notEmpty().withMessage('Use case is required'),
 ];
 
-export async function submitFeatureRequest(req: Request, res: Response) {
+export async function submitFeatureRequest(req: Request, res: Response): Promise<void> {
   try {
+    if (!req.user?.userId || !req.organizationId) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      res.status(400).json({ errors: errors.array() });
+      return;
     }
 
     const {
@@ -205,7 +217,7 @@ export async function submitFeatureRequest(req: Request, res: Response) {
       RETURNING *`,
       [
         req.organizationId,
-        req.userId,
+        req.user.userId,
         title,
         description,
         category || 'other',
@@ -219,7 +231,7 @@ export async function submitFeatureRequest(req: Request, res: Response) {
       ]
     );
 
-    logger.info(`Feature request created: ${title} by user ${req.userId}`);
+    logger.info(`Feature request created: ${title} by user ${req.user.userId}`);
 
     res.status(201).json({
       success: true,
@@ -285,34 +297,40 @@ export async function getFeatureRequests(req: Request, res: Response) {
   }
 }
 
-export async function voteFeatureRequest(req: Request, res: Response) {
+export async function voteFeatureRequest(req: Request, res: Response): Promise<void> {
   try {
+    if (!req.user?.userId) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
     const { id } = req.params;
 
     // Check if already voted
     const existingVote = await query(
       'SELECT id FROM feature_request_votes WHERE feature_request_id = $1 AND user_id = $2',
-      [id, req.userId]
+      [id, req.user.userId]
     );
 
     if (existingVote.length > 0) {
       // Remove vote
       await query(
         'DELETE FROM feature_request_votes WHERE feature_request_id = $1 AND user_id = $2',
-        [id, req.userId]
+        [id, req.user.userId]
       );
 
-      return res.json({
+      res.json({
         success: true,
         message: 'Vote removed',
         voted: false,
       });
+      return;
     }
 
     // Add vote
     await query(
       'INSERT INTO feature_request_votes (feature_request_id, user_id) VALUES ($1, $2)',
-      [id, req.userId]
+      [id, req.user.userId]
     );
 
     // Update vote count
@@ -343,11 +361,17 @@ export const submitBugReportValidation = [
   body('stepsToReproduce').notEmpty().withMessage('Steps to reproduce are required'),
 ];
 
-export async function submitBugReport(req: Request, res: Response) {
+export async function submitBugReport(req: Request, res: Response): Promise<void> {
   try {
+    if (!req.user?.userId || !req.organizationId) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      res.status(400).json({ errors: errors.array() });
+      return;
     }
 
     const {
@@ -375,7 +399,7 @@ export async function submitBugReport(req: Request, res: Response) {
       RETURNING *`,
       [
         req.organizationId,
-        req.userId,
+        req.user.userId,
         title,
         description,
         severity || 'medium',
@@ -392,7 +416,7 @@ export async function submitBugReport(req: Request, res: Response) {
       ]
     );
 
-    logger.info(`Bug report created: ${title} by user ${req.userId}`);
+    logger.info(`Bug report created: ${title} by user ${req.user.userId}`);
 
     res.status(201).json({
       success: true,
