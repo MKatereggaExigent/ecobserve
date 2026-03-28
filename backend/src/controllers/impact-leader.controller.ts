@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import impactDashboardService from '../services/impact-dashboard.service';
 import aiResearchService from '../services/ai-research.service';
-import chatbotService from '../services/chatbot.service';
 import eventMonitoringService from '../services/event-monitoring.service';
 import reportGenerationService from '../services/report-generation.service';
 import badgeService from '../services/badge.service';
@@ -63,69 +62,7 @@ export async function generateResearch(req: Request, res: Response): Promise<voi
   }
 }
 
-/**
- * Chat with AI assistant
- */
-export async function chat(req: Request, res: Response): Promise<void> {
-  try {
-    const userId = req.user?.userId;
-    const organizationId = req.user?.organizationId;
-    const { message, conversation_history } = req.body;
-
-    if (!userId || !organizationId) {
-      res.status(400).json({ error: 'User and organization required' });
-      return;
-    }
-
-    if (!message) {
-      res.status(400).json({ error: 'Message is required' });
-      return;
-    }
-
-    const response = await chatbotService.chat(
-      userId,
-      organizationId,
-      message,
-      conversation_history || []
-    );
-
-    res.json({
-      success: true,
-      data: {
-        message: response,
-        timestamp: new Date().toISOString(),
-      },
-    });
-  } catch (error: any) {
-    logger.error('Chatbot failed', { error: error.message });
-    res.status(500).json({ error: 'Failed to process chat message' });
-  }
-}
-
-/**
- * Get suggested questions for chatbot
- */
-export async function getSuggestedQuestions(req: Request, res: Response): Promise<void> {
-  try {
-    const userId = req.user?.userId;
-    const organizationId = req.user?.organizationId;
-
-    if (!userId || !organizationId) {
-      res.status(400).json({ error: 'User and organization required' });
-      return;
-    }
-
-    const questions = await chatbotService.getSuggestedQuestions(userId, organizationId);
-
-    res.json({
-      success: true,
-      data: questions,
-    });
-  } catch (error: any) {
-    logger.error('Failed to get suggested questions', { error: error.message });
-    res.status(500).json({ error: 'Failed to get suggested questions' });
-  }
-}
+// Chatbot functions have been moved to chatbot.controller.ts
 
 /**
  * Monitor an event and get scorecard
