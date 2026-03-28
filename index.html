@@ -82,15 +82,40 @@
           // Mark reload time
           localStorage.setItem(RELOAD_KEY, now.toString());
 
-          // Clear storage
-          var tempVersion = APP_VERSION;
-          var tempReload = now.toString();
+          // Preserve critical localStorage items that shouldn't be cleared
+          var criticalKeys = [
+            'app_version',
+            RELOAD_KEY,
+            'accessToken',
+            'refreshToken',
+            'user',
+            'ecobserve_tour_preferences',
+            'explorer_onboarding_completed'
+          ];
+
+          var preservedData = {};
+          for (var i = 0; i < criticalKeys.length; i++) {
+            var key = criticalKeys[i];
+            var value = localStorage.getItem(key);
+            if (value !== null) {
+              preservedData[key] = value;
+            }
+          }
+
+          // Clear all storage
           localStorage.clear();
           sessionStorage.clear();
 
-          // Restore version and reload time
-          localStorage.setItem('app_version', tempVersion);
-          localStorage.setItem(RELOAD_KEY, tempReload);
+          // Restore critical data
+          for (var key in preservedData) {
+            if (preservedData.hasOwnProperty(key)) {
+              localStorage.setItem(key, preservedData[key]);
+            }
+          }
+
+          // Ensure version and reload time are set
+          localStorage.setItem('app_version', APP_VERSION);
+          localStorage.setItem(RELOAD_KEY, now.toString());
 
           // Force hard reload with cache bypass
           window.location.href = window.location.href.split('?')[0] + '?v=' + APP_VERSION + '&t=' + now;

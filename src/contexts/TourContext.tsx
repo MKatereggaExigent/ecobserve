@@ -30,17 +30,35 @@ function getLocalTourPrefs(): LocalTourPrefs {
   try {
     const stored = localStorage.getItem(TOUR_LOCAL_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      // Validate the parsed data to prevent crashes from corrupted data
+      if (parsed && typeof parsed === 'object') {
+        return {
+          hasCompletedTour: Boolean(parsed.hasCompletedTour),
+          tourEnabled: parsed.tourEnabled !== false, // Default to true
+          timesSkipped: Number(parsed.timesSkipped) || 0,
+        };
+      }
     }
-  } catch {
-    // Ignore parse errors
+  } catch (error) {
+    console.warn('Failed to parse tour preferences from localStorage:', error);
+    // Clear corrupted data
+    try {
+      localStorage.removeItem(TOUR_LOCAL_KEY);
+    } catch {
+      // Ignore if localStorage is not available
+    }
   }
   return { hasCompletedTour: false, tourEnabled: true, timesSkipped: 0 };
 }
 
 function setLocalTourPrefs(prefs: Partial<LocalTourPrefs>) {
-  const current = getLocalTourPrefs();
-  localStorage.setItem(TOUR_LOCAL_KEY, JSON.stringify({ ...current, ...prefs }));
+  try {
+    const current = getLocalTourPrefs();
+    localStorage.setItem(TOUR_LOCAL_KEY, JSON.stringify({ ...current, ...prefs }));
+  } catch (error) {
+    console.warn('Failed to save tour preferences to localStorage:', error);
+  }
 }
 
 // Tour steps definition - Comprehensive tour covering all features

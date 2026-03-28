@@ -38,6 +38,7 @@ async function fetchCurrentVersion(): Promise<string | null> {
 
 /**
  * Clear all browser caches aggressively
+ * BUT preserve critical app state to prevent crashes
  */
 async function clearAllCaches(): Promise<void> {
   try {
@@ -48,12 +49,34 @@ async function clearAllCaches(): Promise<void> {
       console.log('Cleared', cacheNames.length, 'cache(s)');
     }
 
-    // Clear localStorage except version info
-    const version = localStorage.getItem(VERSION_KEY);
+    // Preserve critical localStorage items that shouldn't be cleared
+    const criticalKeys = [
+      VERSION_KEY,
+      LAST_RELOAD_KEY,
+      'accessToken',                        // Auth token
+      'refreshToken',                       // Auth refresh token
+      'user',                              // User data
+      'ecobserve_tour_preferences',        // Tour state
+      'explorer_onboarding_completed',     // Onboarding state
+    ];
+
+    const preservedData: Record<string, string> = {};
+    criticalKeys.forEach(key => {
+      const value = localStorage.getItem(key);
+      if (value !== null) {
+        preservedData[key] = value;
+      }
+    });
+
+    // Clear all localStorage
     localStorage.clear();
-    if (version) {
-      localStorage.setItem(VERSION_KEY, version);
-    }
+
+    // Restore critical data
+    Object.entries(preservedData).forEach(([key, value]) => {
+      localStorage.setItem(key, value);
+    });
+
+    console.log('✅ Cleared caches, preserved', Object.keys(preservedData).length, 'critical items');
 
     // Clear sessionStorage
     sessionStorage.clear();
