@@ -80,11 +80,11 @@ Tone: Friendly, knowledgeable, encouraging, and action-oriented.
 
       // Get recent events (last 5)
       const recentResult = await pool.query(`
-        SELECT 
-          event_name as name,
-          event_date as date,
-          total_carbon as carbon_footprint,
-          attendees
+        SELECT
+          name,
+          COALESCE(event_date, start_date) as date,
+          COALESCE(total_carbon, 0) as carbon_footprint,
+          COALESCE(attendees, attendee_count, 0) as attendees
         FROM events
         WHERE organization_id = $1
           AND deleted_at IS NULL
