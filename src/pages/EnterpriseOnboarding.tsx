@@ -149,29 +149,36 @@ const EnterpriseOnboarding: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
         <Navbar onNavigate={(section) => navigate(`/#${section}`)} />
-        
-        <div className="container mx-auto px-4 py-20">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="mb-6">
-              <CheckCircle className="w-20 h-20 text-emerald-500 mx-auto" />
+
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20">
+          <div className="max-w-2xl mx-auto">
+            {/* Success Card */}
+            <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 md:p-12 text-center">
+              <div className="mb-6 sm:mb-8 animate-bounce">
+                <CheckCircle className="w-16 h-16 sm:w-20 sm:h-20 text-emerald-500 mx-auto" />
+              </div>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                Thank You!
+              </h1>
+              <p className="text-lg sm:text-xl text-gray-600 mb-6 sm:mb-8 px-4">
+                Your enterprise onboarding questionnaire has been submitted successfully.
+              </p>
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8">
+                <p className="text-sm sm:text-base text-gray-700">
+                  Our enterprise sales team will review your requirements and contact you within <strong className="text-emerald-700">24 hours</strong> at{' '}
+                  <strong className="text-emerald-700 break-all">{formData.primaryContactEmail}</strong>.
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/pricing')}
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-700 hover:shadow-xl transition-all transform hover:scale-105"
+              >
+                Back to Pricing
+              </button>
             </div>
-            <h1 className="text-4xl font-bold mb-4">Thank You!</h1>
-            <p className="text-xl text-gray-600 mb-8">
-              Your enterprise onboarding questionnaire has been submitted successfully.
-            </p>
-            <p className="text-gray-600 mb-8">
-              Our enterprise sales team will review your requirements and contact you within 24 hours at{' '}
-              <strong>{formData.primaryContactEmail}</strong>.
-            </p>
-            <button
-              onClick={() => navigate('/pricing')}
-              className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
-            >
-              Back to Pricing
-            </button>
           </div>
         </div>
-        
+
         <Footer onNavigate={(section) => navigate(`/#${section}`)} />
       </div>
     );
@@ -180,57 +187,83 @@ const EnterpriseOnboarding: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
       <Navbar onNavigate={(section) => navigate(`/#${section}`)} />
-      
-      <div className="container mx-auto px-4 py-12">
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">Enterprise Onboarding</h1>
-            <p className="text-xl text-gray-600">
+          <div className="text-center mb-8 sm:mb-12 px-4">
+            <div className="mb-4 sm:mb-6">
+              <Building2 className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-emerald-600" />
+            </div>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+              Enterprise Onboarding
+            </h1>
+            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
               Help us understand your organization's sustainability needs
             </p>
           </div>
 
           {/* Progress Bar */}
-          <div className="mb-12">
-            <div className="flex items-center justify-between mb-4">
-              {[1, 2, 3, 4, 5].map((step) => (
-                <div key={step} className="flex items-center flex-1">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                      step <= currentStep
-                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white'
-                        : 'bg-gray-200 text-gray-400'
-                    }`}
-                  >
-                    {step}
-                  </div>
-                  {step < 5 && (
-                    <div
-                      className={`flex-1 h-1 mx-2 ${
-                        step < currentStep ? 'bg-emerald-500' : 'bg-gray-200'
-                      }`}
-                    />
-                  )}
+          <div className="mb-8 sm:mb-12">
+            {/* Mobile: Simplified progress bar */}
+            <div className="sm:hidden">
+              <div className="bg-white rounded-xl shadow-md p-4 mb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-semibold text-gray-700">Step {currentStep} of {totalSteps}</span>
+                  <span className="text-sm text-gray-500">{Math.round((currentStep / totalSteps) * 100)}%</span>
                 </div>
-              ))}
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div
+                    className="bg-gradient-to-r from-emerald-500 to-teal-500 h-2.5 rounded-full transition-all duration-500"
+                    style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="text-center text-sm text-gray-600">
-              Step {currentStep} of {totalSteps}
+
+            {/* Desktop: Full progress bar with numbers */}
+            <div className="hidden sm:block">
+              <div className="flex items-center justify-between mb-4">
+                {[1, 2, 3, 4, 5].map((step) => (
+                  <div key={step} className="flex items-center flex-1">
+                    <div
+                      className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-semibold text-sm md:text-base transition-all duration-300 ${
+                        step <= currentStep
+                          ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg'
+                          : 'bg-gray-200 text-gray-400'
+                      } ${step === currentStep ? 'ring-4 ring-emerald-200 scale-110' : ''}`}
+                    >
+                      {step}
+                    </div>
+                    {step < 5 && (
+                      <div
+                        className={`flex-1 h-1 mx-1 md:mx-2 transition-all duration-300 ${
+                          step < currentStep ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : 'bg-gray-200'
+                        }`}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="text-center text-xs md:text-sm text-gray-600 font-medium">
+                Step {currentStep} of {totalSteps}
+              </div>
             </div>
           </div>
 
           {/* Form Card */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8">
             {/* Step 1: Company Information */}
             {currentStep === 1 && (
               <div>
-                <div className="flex items-center gap-3 mb-6">
-                  <Building2 className="w-6 h-6 text-emerald-600" />
-                  <h2 className="text-2xl font-bold">Company Information</h2>
+                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
+                  <div className="p-2 sm:p-2.5 bg-emerald-100 rounded-xl">
+                    <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
+                  </div>
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Company Information</h2>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Company Size */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -299,12 +332,14 @@ const EnterpriseOnboarding: React.FC = () => {
             {/* Step 2: Requirements & Goals */}
             {currentStep === 2 && (
               <div>
-                <div className="flex items-center gap-3 mb-6">
-                  <Target className="w-6 h-6 text-emerald-600" />
-                  <h2 className="text-2xl font-bold">Requirements & Goals</h2>
+                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
+                  <div className="p-2 sm:p-2.5 bg-emerald-100 rounded-xl">
+                    <Target className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
+                  </div>
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Requirements & Goals</h2>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Primary Goals */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -383,12 +418,14 @@ const EnterpriseOnboarding: React.FC = () => {
             {/* Step 3: Technical Requirements */}
             {currentStep === 3 && (
               <div>
-                <div className="flex items-center gap-3 mb-6">
-                  <Settings className="w-6 h-6 text-emerald-600" />
-                  <h2 className="text-2xl font-bold">Technical Requirements</h2>
+                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
+                  <div className="p-2 sm:p-2.5 bg-emerald-100 rounded-xl">
+                    <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
+                  </div>
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Technical Requirements</h2>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Technical Features */}
                   <div className="space-y-4">
                     {[
@@ -443,12 +480,14 @@ const EnterpriseOnboarding: React.FC = () => {
             {/* Step 4: Compliance & Reporting */}
             {currentStep === 4 && (
               <div>
-                <div className="flex items-center gap-3 mb-6">
-                  <CheckCircle className="w-6 h-6 text-emerald-600" />
-                  <h2 className="text-2xl font-bold">Compliance & Reporting</h2>
+                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
+                  <div className="p-2 sm:p-2.5 bg-emerald-100 rounded-xl">
+                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
+                  </div>
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Compliance & Reporting</h2>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Compliance Standards */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -519,12 +558,14 @@ const EnterpriseOnboarding: React.FC = () => {
             {/* Step 5: Contact & Timeline */}
             {currentStep === 5 && (
               <div>
-                <div className="flex items-center gap-3 mb-6">
-                  <Mail className="w-6 h-6 text-emerald-600" />
-                  <h2 className="text-2xl font-bold">Contact & Timeline</h2>
+                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
+                  <div className="p-2 sm:p-2.5 bg-emerald-100 rounded-xl">
+                    <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
+                  </div>
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Contact & Timeline</h2>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Contact Information */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -620,42 +661,50 @@ const EnterpriseOnboarding: React.FC = () => {
           </div>
 
           {/* Navigation Buttons */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
             <button
               onClick={prevStep}
               disabled={currentStep === 1}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+              className={`w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-3.5 rounded-xl font-semibold transition-all text-sm sm:text-base ${
                 currentStep === 1
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : 'bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
               }`}
             >
-              Previous
+              ← Previous
             </button>
 
             {currentStep < totalSteps ? (
               <button
                 onClick={nextStep}
                 disabled={!isStepValid()}
-                className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+                className={`w-full sm:w-auto px-4 sm:px-8 py-3 sm:py-3.5 rounded-xl font-semibold transition-all text-sm sm:text-base transform ${
                   isStepValid()
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:shadow-lg'
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700 hover:shadow-xl hover:scale-105'
                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 }`}
               >
-                Next
+                Next →
               </button>
             ) : (
               <button
                 onClick={handleSubmit}
                 disabled={!isStepValid() || isSubmitting}
-                className={`px-8 py-3 rounded-xl font-semibold transition-all ${
+                className={`w-full sm:w-auto px-4 sm:px-8 py-3 sm:py-3.5 rounded-xl font-semibold transition-all text-sm sm:text-base transform flex items-center justify-center gap-2 ${
                   isStepValid() && !isSubmitting
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:shadow-lg'
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700 hover:shadow-xl hover:scale-105'
                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 }`}
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Application'}
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Submitting...
+                  </>
+                ) : 'Submit Application'}
               </button>
             )}
           </div>

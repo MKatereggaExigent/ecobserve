@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Leaf, Menu, X, User, FolderOpen, DollarSign, LogOut, LayoutDashboard, Sparkles, Award, Calculator, HelpCircle, RotateCcw, Settings as SettingsIcon, CreditCard, Crown, ChevronDown, BookOpen, TrendingUp, Info } from 'lucide-react';
+import { Leaf, Menu, X, User, FolderOpen, DollarSign, LogOut, LayoutDashboard, Sparkles, Award, Calculator, HelpCircle, RotateCcw, Settings as SettingsIcon, CreditCard, Crown, ChevronDown, BookOpen, TrendingUp, Info, Building2, MessageSquarePlus, Code } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTour } from '@/contexts/TourContext';
 import BrandLogo from './BrandLogo';
 import Settings from './Settings';
 import SubscriptionBadge from './SubscriptionBadge';
 
-// Navbar v1.4 - Force rebuild with TrendingUp fix (Build: 2026-03-22 18:58 UTC)
+// Navbar v1.5 - Enterprise Features & Upgrade Menu (Build: 2026-03-28 15:15 UTC)
 
 interface NavbarProps {
   onNavigate: (section: string) => void;
@@ -21,6 +21,8 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, activeSection }) => {
   const [showCalculatorsDropdown, setShowCalculatorsDropdown] = useState(false);
   const [showResultsDropdown, setShowResultsDropdown] = useState(false);
   const [showInfoDropdown, setShowInfoDropdown] = useState(false);
+  const [showUpgradeDropdown, setShowUpgradeDropdown] = useState(false);
+  const [showEnterpriseDropdown, setShowEnterpriseDropdown] = useState(false);
   const { user, isAuthenticated, logout, isLoading, subscriptionTier } = useAuth();
   const { restartTour, hasCompletedTour } = useTour();
   const navigate = useNavigate();
@@ -42,11 +44,24 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, activeSection }) => {
     { id: 'faq', label: 'FAQs', icon: HelpCircle, isRoute: true },
   ];
 
+  // Upgrade menu items
+  const upgradeLinks = [
+    { id: 'current-plan', label: 'Current Plan', icon: CreditCard, action: 'showBadge' },
+    { id: 'pricing', label: 'View Pricing', icon: Crown, isRoute: true },
+    { id: 'restart-tour', label: 'Restart Tour', icon: RotateCcw, action: 'restartTour' },
+  ];
+
+  // Enterprise features menu items
+  const enterpriseLinks = [
+    { id: 'enterprise-onboarding', label: 'Enterprise Onboarding', icon: Building2, isRoute: true, requiredTier: 'enterprise' as const },
+    { id: 'feature-requests', label: 'Feature Requests & Bugs', icon: MessageSquarePlus, isRoute: true },
+    { id: 'api-docs', label: 'API Documentation', icon: Code, isRoute: true, requiredTier: 'enterprise' as const },
+  ];
+
   // Standalone links
   const standaloneLinks = [
     { id: 'hero', label: 'Home', icon: null },
     { id: 'myevents', label: 'My Events', icon: FolderOpen, requiredTier: 'planner' as const },
-    { id: 'pricing', label: 'Pricing', icon: CreditCard, isRoute: true },
   ];
 
   // Helper to check if user can access a feature
@@ -327,58 +342,145 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, activeSection }) => {
                 )}
               </div>
 
-              {/* Pricing link */}
-              <button
-                onClick={() => navigate('/pricing')}
-                className={`px-2 xl:px-3 py-2 rounded-lg text-xs xl:text-sm font-medium transition-all flex items-center gap-1 whitespace-nowrap ${
-                  activeSection === 'pricing'
-                    ? 'bg-emerald-50 text-emerald-700'
-                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50/50'
-                }`}
-              >
-                <CreditCard className="w-3 xl:w-3.5 h-3 xl:h-3.5 flex-shrink-0" />
-                Pricing
-              </button>
+              {/* Upgrade Dropdown - only show when authenticated */}
+              {isAuthenticated && (
+                <div
+                  className="relative group"
+                  onMouseEnter={() => setShowUpgradeDropdown(true)}
+                  onMouseLeave={() => setShowUpgradeDropdown(false)}
+                >
+                  <button
+                    onClick={() => setShowUpgradeDropdown(!showUpgradeDropdown)}
+                    className={`px-2 xl:px-3 py-2 rounded-lg text-xs xl:text-sm font-medium transition-all flex items-center gap-1 whitespace-nowrap ${
+                      showUpgradeDropdown
+                        ? 'bg-purple-50 text-purple-700'
+                        : 'text-purple-600 hover:text-purple-700 hover:bg-purple-50/50'
+                    }`}
+                  >
+                    <Crown className="w-3 xl:w-3.5 h-3 xl:h-3.5 flex-shrink-0" />
+                    <span>Upgrade</span>
+                    <ChevronDown className={`w-3 h-3 transition-transform ${showUpgradeDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+                  {showUpgradeDropdown && (
+                    <div className="absolute top-full left-0 pt-2 w-56 z-50">
+                      <div className="bg-white rounded-lg shadow-xl border border-gray-100 py-2">
+                        {/* Current Plan Badge */}
+                        <div className="px-4 py-2 border-b border-gray-100">
+                          <p className="text-xs font-medium text-gray-500 mb-1.5">Current Plan</p>
+                          <SubscriptionBadge tier={subscriptionTier} size="sm" />
+                        </div>
+
+                        {/* Pricing */}
+                        <button
+                          onClick={() => {
+                            navigate('/pricing');
+                            setShowUpgradeDropdown(false);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm transition-all flex items-center gap-2 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700"
+                        >
+                          <CreditCard className="w-4 h-4 flex-shrink-0" />
+                          View Pricing
+                        </button>
+
+                        {/* Restart Tour */}
+                        <button
+                          onClick={() => {
+                            restartTour();
+                            setShowUpgradeDropdown(false);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm transition-all flex items-center gap-2 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700"
+                        >
+                          <RotateCcw className="w-4 h-4 flex-shrink-0" />
+                          Restart Tour
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Enterprise Features Dropdown - only show when authenticated */}
+              {isAuthenticated && (
+                <div
+                  className="relative group"
+                  onMouseEnter={() => setShowEnterpriseDropdown(true)}
+                  onMouseLeave={() => setShowEnterpriseDropdown(false)}
+                >
+                  <button
+                    onClick={() => setShowEnterpriseDropdown(!showEnterpriseDropdown)}
+                    className={`px-2 xl:px-3 py-2 rounded-lg text-xs xl:text-sm font-medium transition-all flex items-center gap-1 whitespace-nowrap ${
+                      showEnterpriseDropdown
+                        ? 'bg-emerald-50 text-emerald-700'
+                        : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50/50'
+                    }`}
+                  >
+                    <Building2 className="w-3 xl:w-3.5 h-3 xl:h-3.5 flex-shrink-0" />
+                    <span>Enterprise</span>
+                    <ChevronDown className={`w-3 h-3 transition-transform ${showEnterpriseDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+                  {showEnterpriseDropdown && (
+                    <div className="absolute top-full left-0 pt-2 w-64 z-50">
+                      <div className="bg-white rounded-lg shadow-xl border border-gray-100 py-2">
+                        {enterpriseLinks.map((link) => {
+                          const Icon = link.icon;
+                          const hasAccess = canAccessLink(link.requiredTier);
+                          return (
+                            <button
+                              key={link.id}
+                              onClick={() => {
+                                if (hasAccess || !link.requiredTier) {
+                                  if (link.isRoute) {
+                                    navigate(`/${link.id}`);
+                                  } else {
+                                    onNavigate(link.id);
+                                  }
+                                } else {
+                                  navigate('/pricing');
+                                }
+                                setShowEnterpriseDropdown(false);
+                              }}
+                              className={`w-full text-left px-4 py-2 text-sm transition-all flex items-center justify-between gap-2 ${
+                                hasAccess || !link.requiredTier
+                                  ? 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-700'
+                                  : 'text-gray-400 hover:bg-purple-50'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
+                                {link.label}
+                              </div>
+                              {link.requiredTier && (
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${getTierBadgeColor(link.requiredTier)}`}>
+                                  {getTierLabel(link.requiredTier)}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Pricing link for non-authenticated users */}
+              {!isAuthenticated && (
+                <button
+                  onClick={() => navigate('/pricing')}
+                  className="px-2 xl:px-3 py-2 rounded-lg text-xs xl:text-sm font-medium transition-all flex items-center gap-1 whitespace-nowrap text-gray-600 hover:text-emerald-700 hover:bg-emerald-50/50"
+                >
+                  <CreditCard className="w-3 xl:w-3.5 h-3 xl:h-3.5 flex-shrink-0" />
+                  Pricing
+                </button>
+              )}
             </div>
 
-            {/* Right side - Tour Button & Auth */}
+            {/* Right side - Auth */}
             <div className="flex items-center gap-2 sm:gap-3">
-              {/* Tour Button */}
-              <button
-                onClick={restartTour}
-                data-tour="tour-button"
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-emerald-600 hover:bg-emerald-50 transition-all border border-emerald-200 hover:border-emerald-300"
-                title={hasCompletedTour ? "Take the tour again" : "Start product tour"}
-              >
-                {hasCompletedTour ? (
-                  <RotateCcw className="w-3.5 h-3.5" />
-                ) : (
-                  <HelpCircle className="w-3.5 h-3.5" />
-                )}
-                <span className="hidden xl:inline">{hasCompletedTour ? "Restart Tour" : "Take Tour"}</span>
-              </button>
-
               {isLoading ? (
                 <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
               ) : isAuthenticated && user ? (
                 <>
-                  {/* Current Tier Badge - Always visible */}
-                  <div className="hidden md:block">
-                    <SubscriptionBadge tier={subscriptionTier} size="sm" />
-                  </div>
-
-                  {/* Upgrade button for non-enterprise users */}
-                  {subscriptionTier !== 'enterprise' && (
-                    <button
-                      onClick={() => navigate('/pricing')}
-                      className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg"
-                      title="Upgrade your subscription"
-                    >
-                      <Crown className="w-3.5 h-3.5" />
-                      <span className="hidden xl:inline">Upgrade</span>
-                    </button>
-                  )}
-
                   <div className="relative">
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
@@ -608,18 +710,97 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, activeSection }) => {
                 );
               })}
 
-              {/* Pricing link */}
-              <button
-                onClick={() => { navigate('/pricing'); setMobileOpen(false); }}
-                className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                  activeSection === 'pricing'
-                    ? 'bg-emerald-50 text-emerald-700'
-                    : 'text-gray-600 hover:bg-emerald-50'
-                }`}
-              >
-                <CreditCard className="w-4 h-4" />
-                Pricing
-              </button>
+              {/* Upgrade Section - only show when authenticated */}
+              {isAuthenticated && (
+                <>
+                  <div className="px-4 py-2 text-xs font-semibold text-purple-600 uppercase tracking-wider mt-2">
+                    <Crown className="w-3 h-3 inline-block mr-1" />
+                    Upgrade
+                  </div>
+
+                  {/* Current Plan */}
+                  <div className="px-4 py-2.5 rounded-lg">
+                    <p className="text-xs font-medium text-gray-500 mb-1.5">Current Plan</p>
+                    <SubscriptionBadge tier={subscriptionTier} size="sm" />
+                  </div>
+
+                  {/* Pricing */}
+                  <button
+                    onClick={() => { navigate('/pricing'); setMobileOpen(false); }}
+                    className="w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-gray-600 hover:bg-emerald-50"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    View Pricing
+                  </button>
+
+                  {/* Restart Tour */}
+                  <button
+                    onClick={() => { restartTour(); setMobileOpen(false); }}
+                    className="w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-gray-600 hover:bg-emerald-50"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    Restart Tour
+                  </button>
+                </>
+              )}
+
+              {/* Enterprise Features Section - only show when authenticated */}
+              {isAuthenticated && (
+                <>
+                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-2">
+                    <Building2 className="w-3 h-3 inline-block mr-1" />
+                    Enterprise Features
+                  </div>
+                  {enterpriseLinks.map((link) => {
+                    const Icon = link.icon;
+                    const hasAccess = canAccessLink(link.requiredTier);
+                    return (
+                      <button
+                        key={link.id}
+                        onClick={() => {
+                          if (hasAccess || !link.requiredTier) {
+                            if (link.isRoute) {
+                              navigate(`/${link.id}`);
+                            } else {
+                              onNavigate(link.id);
+                            }
+                            setMobileOpen(false);
+                          } else {
+                            navigate('/pricing');
+                            setMobileOpen(false);
+                          }
+                        }}
+                        className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-between ${
+                          hasAccess || !link.requiredTier
+                            ? 'text-gray-600 hover:bg-emerald-50'
+                            : 'text-gray-400 hover:bg-purple-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {Icon && <Icon className="w-4 h-4" />}
+                          {link.label}
+                        </div>
+                        {link.requiredTier && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${getTierBadgeColor(link.requiredTier)}`}>
+                            {getTierLabel(link.requiredTier)}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+
+              {/* Pricing link for non-authenticated users */}
+              {!isAuthenticated && (
+                <button
+                  onClick={() => { navigate('/pricing'); setMobileOpen(false); }}
+                  className="w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-gray-600 hover:bg-emerald-50"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  Pricing
+                </button>
+              )}
 
               {/* Auth button */}
               {isAuthenticated && user ? (
@@ -635,15 +816,6 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, activeSection }) => {
                       </div>
                     </div>
                   </div>
-                  {subscriptionTier !== 'enterprise' && (
-                    <button
-                      onClick={() => { navigate('/pricing'); setMobileOpen(false); }}
-                      className="w-full mx-4 mb-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:from-purple-700 hover:to-pink-700"
-                    >
-                      <Crown className="w-4 h-4" />
-                      Upgrade Plan
-                    </button>
-                  )}
                   <button
                     onClick={() => { setShowSettings(true); setMobileOpen(false); }}
                     className="w-full mt-2 px-4 py-2.5 text-gray-700 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-emerald-50"

@@ -258,58 +258,69 @@ const FeatureRequestsBugs: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
       <Navbar onNavigate={(section) => navigate(`/#${section}`)} />
 
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">Feature Requests & Bug Reports</h1>
-            <p className="text-xl text-gray-600">
+          <div className="text-center mb-8 sm:mb-12 px-4">
+            <div className="mb-4 sm:mb-6 flex items-center justify-center gap-3">
+              <Lightbulb className="w-10 h-10 sm:w-12 sm:h-12 text-emerald-600" />
+              <Bug className="w-10 h-10 sm:w-12 sm:h-12 text-teal-600" />
+            </div>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+              Feature Requests & Bug Reports
+            </h1>
+            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
               Help us improve EcobServe - request features or report bugs
             </p>
           </div>
 
           {/* Tabs */}
-          <div className="flex items-center justify-center gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 mb-6 sm:mb-8">
             <button
               onClick={() => { setActiveTab('feature-requests'); setShowForm(false); }}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
+              className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-3.5 rounded-xl font-semibold transition-all transform hover:scale-105 ${
                 activeTab === 'feature-requests'
-                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xl'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 shadow-md'
               }`}
             >
-              <Lightbulb className="w-5 h-5" />
-              Feature Requests
+              <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="text-sm sm:text-base">Feature Requests</span>
             </button>
             <button
               onClick={() => { setActiveTab('bug-reports'); setShowForm(false); }}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
+              className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-3.5 rounded-xl font-semibold transition-all transform hover:scale-105 ${
                 activeTab === 'bug-reports'
-                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xl'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 shadow-md'
               }`}
             >
-              <Bug className="w-5 h-5" />
-              Bug Reports
+              <Bug className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="text-sm sm:text-base">Bug Reports</span>
             </button>
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-end mb-6">
+          <div className="flex justify-end mb-4 sm:mb-6">
             <button
               onClick={() => setShowForm(!showForm)}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-700 hover:shadow-xl transition-all transform hover:scale-105 text-sm sm:text-base"
             >
-              <Send className="w-5 h-5" />
+              <Send className="w-4 h-4 sm:w-5 sm:h-5" />
               {showForm ? 'Cancel' : activeTab === 'feature-requests' ? 'Request Feature' : 'Report Bug'}
             </button>
           </div>
 
           {/* Feature Request Form */}
           {showForm && activeTab === 'feature-requests' && (
-            <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-              <h2 className="text-2xl font-bold mb-6">Submit Feature Request</h2>
-              <div className="space-y-6">
+            <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 animate-in fade-in duration-300">
+              <div className="flex items-center gap-3 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
+                <div className="p-2 sm:p-2.5 bg-emerald-100 rounded-xl">
+                  <Lightbulb className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
+                </div>
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Submit Feature Request</h2>
+              </div>
+              <div className="space-y-4 sm:space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Feature Title <span className="text-red-500">*</span>
@@ -424,9 +435,14 @@ const FeatureRequestsBugs: React.FC = () => {
 
           {/* Bug Report Form */}
           {showForm && activeTab === 'bug-reports' && (
-            <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-              <h2 className="text-2xl font-bold mb-6">Report a Bug</h2>
-              <div className="space-y-6">
+            <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 animate-in fade-in duration-300">
+              <div className="flex items-center gap-3 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
+                <div className="p-2 sm:p-2.5 bg-red-100 rounded-xl">
+                  <Bug className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
+                </div>
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Report a Bug</h2>
+              </div>
+              <div className="space-y-4 sm:space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Bug Title <span className="text-red-500">*</span>
@@ -522,7 +538,7 @@ const FeatureRequestsBugs: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Browser</label>
                     <input
@@ -545,7 +561,7 @@ const FeatureRequestsBugs: React.FC = () => {
                     />
                   </div>
 
-                  <div>
+                  <div className="sm:col-span-2 lg:col-span-1">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Device</label>
                     <input
                       type="text"
@@ -563,7 +579,7 @@ const FeatureRequestsBugs: React.FC = () => {
                     value={bugFormData.errorLogs}
                     onChange={(e) => setBugFormData({ ...bugFormData, errorLogs: e.target.value })}
                     rows={3}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-emerald-500 focus:outline-none font-mono text-sm"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-emerald-500 focus:outline-none font-mono text-xs sm:text-sm"
                     placeholder="Paste any error messages from the console..."
                   />
                 </div>
@@ -571,9 +587,17 @@ const FeatureRequestsBugs: React.FC = () => {
                 <button
                   onClick={submitBugReport}
                   disabled={isSubmitting || !bugFormData.title || !bugFormData.description || !bugFormData.stepsToReproduce}
-                  className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-700 hover:shadow-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
                 >
-                  {isSubmitting ? 'Submitting...' : 'Submit Bug Report'}
+                  {isSubmitting ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Submitting...
+                    </>
+                  ) : 'Submit Bug Report'}
                 </button>
               </div>
             </div>
@@ -581,27 +605,27 @@ const FeatureRequestsBugs: React.FC = () => {
 
           {/* Feature Requests List */}
           {activeTab === 'feature-requests' && !showForm && (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {featureRequests.length === 0 ? (
-                <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
-                  <Lightbulb className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg">No feature requests yet. Be the first to request one!</p>
+                <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-12 text-center">
+                  <Lightbulb className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
+                  <p className="text-gray-500 text-base sm:text-lg">No feature requests yet. Be the first to request one!</p>
                 </div>
               ) : (
                 featureRequests.map((request) => (
-                  <div key={request.id} className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-xl font-bold">{request.title}</h3>
+                  <div key={request.id} className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-all">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                          <h3 className="text-lg sm:text-xl font-bold break-words">{request.title}</h3>
                           {request.requires_onpremise && (
-                            <span className="px-2 py-1 bg-purple-100 text-purple-600 text-xs rounded-full font-semibold">
+                            <span className="px-2 py-1 bg-purple-100 text-purple-600 text-xs rounded-full font-semibold w-fit">
                               On-Premise
                             </span>
                           )}
                         </div>
-                        <p className="text-gray-600 mb-3">{request.description}</p>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <p className="text-sm sm:text-base text-gray-600 mb-3 break-words">{request.description}</p>
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
                           <span className="px-3 py-1 bg-gray-100 rounded-full">{request.category}</span>
                           <span>{getStatusBadge(request.status)}</span>
                           <span>by {request.user_name}</span>
