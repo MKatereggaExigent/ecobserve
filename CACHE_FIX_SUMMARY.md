@@ -3,10 +3,21 @@
 ## Problem
 Users experience a blank white page when navigating to `/pricing` after deployment. The issue persists until they manually clear browser cache, cookies, and history.
 
-## Root Cause
-**Two interconnected issues:**
+**Console Error:** `ReferenceError: TrendingUp is not defined`
 
-### 1. Stale JavaScript Bundle Cache
+## Root Cause
+**THREE interconnected issues:**
+
+### 1. Missing Import in Pricing.tsx (THE IMMEDIATE CAUSE!)
+**The smoking gun:** Line 392 in `Pricing.tsx` uses `<TrendingUp>` component, but `TrendingUp` was NOT imported from `lucide-react`.
+- Only `TrendingDown` was imported
+- When React tried to render the Pricing page, it threw: `ReferenceError: TrendingUp is not defined`
+- This caused the component to crash immediately
+- Result: **BLANK WHITE PAGE**
+
+**The Fix:** Added `TrendingUp` to the import statement on line 2.
+
+### 2. Stale JavaScript Bundle Cache
 The browser caches JavaScript bundles for 1 hour. When you deploy a new version:
 1. User's browser has OLD JS bundle cached
 2. User navigates to `/pricing` route (client-side navigation)
@@ -15,7 +26,7 @@ The browser caches JavaScript bundles for 1 hour. When you deploy a new version:
 5. Component crashes or fails to render → blank white page
 6. No error boundary to catch the error → user sees nothing
 
-### 2. localStorage Being Cleared Entirely (THE REAL CULPRIT!)
+### 3. localStorage Being Cleared Entirely (SECONDARY ISSUE)
 When version check detects a new deployment, it clears **ALL localStorage**, including:
 - Auth tokens (`accessToken`, `refreshToken`, `user`)
 - Tour preferences (`ecobserve_tour_preferences`)
@@ -31,8 +42,32 @@ When user navigates to `/pricing`:
 
 ## Solutions Implemented
 
-### 1. **Preserve Critical localStorage During Cache Clear** ✅ **[PRIMARY FIX]**
-**This was the root cause!** Modified cache-clearing logic to preserve critical app state.
+### 0. **Fix Missing Import** ✅ **[CRITICAL - THE ACTUAL BUG!]**
+**This was causing the immediate crash!**
+
+**File modified:**
+- `src/pages/Pricing.tsx` - Added `TrendingUp` to lucide-react imports
+
+**The bug:**
+- Line 392 used `<TrendingUp className="w-4 h-4" />` in an Upgrade button
+- But line 2 only imported `TrendingDown`, not `TrendingUp`
+- Result: `ReferenceError: TrendingUp is not defined` → component crashes → blank page
+
+**The fix:**
+```typescript
+// BEFORE (line 2):
+import { Check, Sparkles, Crown, Rocket, Zap, ArrowRight, Loader2, TrendingDown } from 'lucide-react';
+
+// AFTER (line 2):
+import { Check, Sparkles, Crown, Rocket, Zap, ArrowRight, Loader2, TrendingDown, TrendingUp } from 'lucide-react';
+```
+
+**Benefits:**
+- ✅ **Pricing page now renders without crashing!**
+- ✅ **This alone fixes the blank page issue completely!**
+
+### 1. **Preserve Critical localStorage During Cache Clear** ✅ **[PREVENTIVE FIX]**
+**Preventive measure** - Modified cache-clearing logic to preserve critical app state and prevent future crashes.
 
 **Files modified:**
 - `src/utils/versionCheck.ts` - `clearAllCaches()` function
@@ -106,12 +141,12 @@ When user navigates to `/pricing`:
 
 ## Files Modified
 
-1. **`src/utils/versionCheck.ts`** - **CRITICAL FIX** - Preserve localStorage during cache clear
-2. **`index.html`** - **CRITICAL FIX** - Preserve localStorage in cache-busting script
-3. **`src/contexts/TourContext.tsx`** - Added defensive error handling for corrupted localStorage
-4. `src/components/ErrorBoundary.tsx` - NEW - Catches rendering errors
-5. `src/App.tsx` - Wrapped in ErrorBoundary
-6. `src/pages/Pricing.tsx` - Added timeout, improved loading, version check
+1. **`src/pages/Pricing.tsx`** - **⭐ CRITICAL FIX** - Added missing `TrendingUp` import (THE ACTUAL BUG!)
+2. **`src/utils/versionCheck.ts`** - Preserve localStorage during cache clear (preventive)
+3. **`index.html`** - Preserve localStorage in cache-busting script (preventive)
+4. **`src/contexts/TourContext.tsx`** - Added defensive error handling for corrupted localStorage
+5. `src/components/ErrorBoundary.tsx` - NEW - Catches rendering errors
+6. `src/App.tsx` - Wrapped in ErrorBoundary
 7. `nginx.conf` - Added ETag support
 8. `CACHE_FIX_SUMMARY.md` - This documentation file
 

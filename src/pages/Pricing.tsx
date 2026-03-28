@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Check, Sparkles, Crown, Rocket, Zap, ArrowRight, Loader2, TrendingDown } from 'lucide-react';
+import { Check, Sparkles, Crown, Rocket, Zap, ArrowRight, Loader2, TrendingDown, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/ecobserve/Navbar';
