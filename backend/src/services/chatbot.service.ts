@@ -25,9 +25,24 @@ interface ChatContext {
   }>;
 }
 
+interface Conversation {
+  id: string;
+  messages: ChatMessage[];
+  started_at: string;
+  last_message_at: string;
+}
+
 class ChatbotService {
   private readonly SYSTEM_PROMPT = `
 You are EcoBot, an intelligent sustainability assistant for EcobServe, a platform for sustainable event management.
+
+CRITICAL FORMATTING RULES:
+- DO NOT use markdown formatting (**, *, #, etc.)
+- Use plain text with line breaks for readability
+- Use bullet points with • or - (not asterisks)
+- Use numbers for ordered lists (1., 2., 3.)
+- Keep responses conversational and natural, like ChatGPT
+- Break long responses into short paragraphs with blank lines between them
 
 Your role:
 - Help users understand their carbon footprint and sustainability metrics
@@ -108,34 +123,74 @@ User's Event Summary (PRIVATE - only for this user):
 - Event Categories: ${context.event_summary.top_categories?.join(', ') || 'None'}
 
 Recent Events:
-${context.recent_events?.map(e => 
+${context.recent_events?.map(e =>
   `- ${e.name} (${e.date}): ${Math.round(e.carbon_footprint)} kg CO2e, ${e.attendees} attendees`
 ).join('\n') || 'No recent events'}
 `;
   }
 
   /**
-   * Chat with the bot
+   * Strip markdown formatting from text to ensure clean, readable output
    */
-  async chat(
+  private stripMarkdown(text: string): string {
+    // Remove bold/italic markers but keep the text
+    let cleaned = text
+      .replace(/\*\*\*(.+?)\*\*\*/g, '$1') // Remove bold+italic ***text***
+      .replace(/\*\*(.+?)\*\*/g, '$1')     // Remove bold **text**
+      .replace(/\*(.+?)\*/g, '$1')         // Remove italic *text*
+      .replace(/__(.+?)__/g, '$1')         // Remove bold __text__
+      .replace(/_(.+?)_/g, '$1')           // Remove italic _text_
+      .replace(/~~(.+?)~~/g, '$1')         // Remove strikethrough ~~text~~
+      .replace(/`(.+?)`/g, '$1')           // Remove inline code `text`
+      .replace(/^#+\s+/gm, '')             // Remove heading markers # ## ###
+      .replace(/^\s*[-*+]\s+/gm, '• ')     // Convert list markers to bullets
+      .replace(/^\s*\d+\.\s+/gm, (match) => match) // Keep numbered lists
+      .replace(/\[(.+?)\]\(.+?\)/g, '$1')  // Remove links [text](url) -> text
+      .replace(/!\[.*?\]\(.+?\)/g, '')     // Remove images
+      .replace(/^\s*>\s+/gm, '')           // Remove blockquote markers
+      .replace(/```[\s\S]*?```/g, '')      // Remove code blocks
+      .trim();
+
+    return cleaned;
+  }
+
+  /**
+   * Send a message and persist conversation
+   */
+  async sendMessage(
     userId: string,
     organizationId: string,
-    message: string,
-    conversationHistory: ChatMessage[] = []
-  ): Promise<string> {
+    message: string
+  ): Promise<{ message: string; timestamp: string; conversationId: string }> {
     try {
+      // Get or create conversation
+      let conversation = await this.getConversation(userId, organizationId);
+
+      if (!conversation) {
+        conversation = await this.createConversation(userId, organizationId);
+      }
+
+      // Add user message to conversation
+      const userMessage: ChatMessage = {
+        role: 'user',
+        content: message,
+        timestamp: new Date().toISOString(),
+      };
+
+      conversation.messages.push(userMessage);
+
       // Get user context
       const context = await this.getUserContext(userId, organizationId);
       const contextString = this.sanitizeContext(context);
 
-      // Build conversation messages
+      // Build messages for OpenAI
       const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
         { role: 'system', content: this.SYSTEM_PROMPT },
         { role: 'system', content: `User Context:\n${contextString}` },
       ];
 
-      // Add conversation history (last 10 messages for context)
-      const recentHistory = conversationHistory.slice(-10);
+      // Add conversation history (last 10 messages)
+      const recentHistory = conversation.messages.slice(-10);
       for (const msg of recentHistory) {
         messages.push({
           role: msg.role,
@@ -143,29 +198,140 @@ ${context.recent_events?.map(e =>
         });
       }
 
-      // Add current user message
-      messages.push({
-        role: 'user',
-        content: message,
-      });
-
       // Get response from OpenAI
-      const response = await openaiService.chat(messages, {
+      let aiResponse = await openaiService.chat(messages, {
         temperature: 0.7,
         maxTokens: 1000,
       });
 
-      logger.info('Chatbot response generated', {
+      // Strip markdown formatting to ensure clean, readable text
+      aiResponse = this.stripMarkdown(aiResponse);
+
+      // Add AI response to conversation
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: aiResponse,
+        timestamp: new Date().toISOString(),
+      };
+
+      conversation.messages.push(assistantMessage);
+
+      // Save updated conversation
+      await this.saveConversation(conversation.id, userId, organizationId, conversation.messages);
+
+      logger.info('Chatbot message sent', {
         userId,
         organizationId,
+        conversationId: conversation.id,
         messageLength: message.length,
-        responseLength: response.length,
+        responseLength: aiResponse.length,
       });
 
-      return response;
+      return {
+        message: aiResponse,
+        timestamp: assistantMessage.timestamp,
+        conversationId: conversation.id,
+      };
     } catch (error: any) {
-      logger.error('Chatbot chat failed', { error: error.message });
-      throw new Error('Failed to generate chatbot response');
+      logger.error('Chatbot sendMessage failed', { error: error.message });
+      throw new Error('Failed to send message');
+    }
+  }
+
+  /**
+   * Get conversation for a user
+   */
+  async getConversation(userId: string, organizationId: string): Promise<Conversation | null> {
+    try {
+      const result = await pool.query(
+        `SELECT id, messages, started_at, last_message_at
+         FROM chatbot_conversations
+         WHERE user_id = $1 AND organization_id = $2 AND is_active = true
+         ORDER BY last_message_at DESC
+         LIMIT 1`,
+        [userId, organizationId]
+      );
+
+      if (result.rows.length === 0) {
+        return null;
+      }
+
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        messages: row.messages || [],
+        started_at: row.started_at,
+        last_message_at: row.last_message_at,
+      };
+    } catch (error: any) {
+      logger.error('Failed to get conversation', { error: error.message });
+      return null;
+    }
+  }
+
+  /**
+   * Create new conversation
+   */
+  private async createConversation(userId: string, organizationId: string): Promise<Conversation> {
+    try {
+      const result = await pool.query(
+        `INSERT INTO chatbot_conversations (user_id, organization_id, messages, started_at, last_message_at)
+         VALUES ($1, $2, $3, NOW(), NOW())
+         RETURNING id, messages, started_at, last_message_at`,
+        [userId, organizationId, JSON.stringify([])]
+      );
+
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        messages: [],
+        started_at: row.started_at,
+        last_message_at: row.last_message_at,
+      };
+    } catch (error: any) {
+      logger.error('Failed to create conversation', { error: error.message });
+      throw new Error('Failed to create conversation');
+    }
+  }
+
+  /**
+   * Save conversation to database
+   */
+  private async saveConversation(
+    conversationId: string,
+    userId: string,
+    organizationId: string,
+    messages: ChatMessage[]
+  ): Promise<void> {
+    try {
+      await pool.query(
+        `UPDATE chatbot_conversations
+         SET messages = $1, last_message_at = NOW()
+         WHERE id = $2 AND user_id = $3 AND organization_id = $4`,
+        [JSON.stringify(messages), conversationId, userId, organizationId]
+      );
+    } catch (error: any) {
+      logger.error('Failed to save conversation', { error: error.message });
+      throw new Error('Failed to save conversation');
+    }
+  }
+
+  /**
+   * Clear conversation for a user
+   */
+  async clearConversation(userId: string, organizationId: string): Promise<void> {
+    try {
+      await pool.query(
+        `UPDATE chatbot_conversations
+         SET is_active = false
+         WHERE user_id = $1 AND organization_id = $2`,
+        [userId, organizationId]
+      );
+
+      logger.info('Conversation cleared', { userId, organizationId });
+    } catch (error: any) {
+      logger.error('Failed to clear conversation', { error: error.message });
+      throw new Error('Failed to clear conversation');
     }
   }
 

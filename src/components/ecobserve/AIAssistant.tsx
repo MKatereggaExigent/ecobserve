@@ -1,66 +1,164 @@
-import React, { useState } from 'react';
-import { MessageCircle, X, Send, Leaf, Bot, User, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MessageCircle, X, Send, Leaf, Bot, User, Sparkles, Lock, Crown } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { api, isAuthenticated } from '@/services/api';
 
 interface Message {
   id: number;
   role: 'user' | 'assistant';
   content: string;
+  timestamp?: string;
 }
-
-const quickQuestions = [
-  'How can I reduce catering emissions?',
-  'Best sustainable venue options?',
-  'Tips for zero-waste events',
-  'How to offset carbon?',
-];
 
 const AIAssistant: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 0,
-      role: 'assistant',
-      content: "Hi! I'm your EcobServe AI assistant — here to provide authentic care and personalized guidance for your sustainable events. 🌿\n\nI can help you with:\n• **Eco-friendly** alternatives and carbon reduction\n• **Observable** impact metrics and tracking\n• **Personalized service** tailored to your event\n\nWhat would you like to know?",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
+  const { isAuthenticated: authCheck, canAccessFeature, subscriptionTier } = useAuth();
+  const navigate = useNavigate();
 
-  const getResponse = (question: string): string => {
-    const q = question.toLowerCase();
-    if (q.includes('cater') || q.includes('food') || q.includes('menu') || q.includes('f&b')) {
-      return "Great question! Here are top strategies for reducing catering emissions:\n\n1. **Go plant-forward** — A vegan menu produces ~67% less carbon than meat-heavy options\n2. **Source locally** — Partner with farms within 50 miles to cut transport emissions by 40%\n3. **Reduce food waste** — Use accurate headcounts and donate leftovers to local shelters\n4. **Compostable servingware** — Switch from single-use plastics to compostable alternatives\n5. **Seasonal menus** — Use in-season ingredients to avoid energy-intensive greenhouse growing\n\nWould you like specific vendor recommendations?";
+  // Check if user has access to AI chatbot (Impact Leader tier required)
+  const hasAccess = authCheck && canAccessFeature('impact');
+
+  // Load conversation history and suggested questions when component mounts
+  useEffect(() => {
+    if (hasAccess && isOpen) {
+      loadConversationHistory();
+      loadSuggestedQuestions();
     }
-    if (q.includes('venue') || q.includes('location') || q.includes('space')) {
-      return "Here are the best sustainable venue strategies:\n\n1. **Choose LEED-certified venues** — They use 25% less energy on average\n2. **Outdoor venues** — Natural lighting and ventilation reduce energy use by 50%+\n3. **Renewable energy** — Look for venues powered by solar or wind energy\n4. **Smart HVAC** — Venues with smart thermostats reduce energy waste by 30%\n5. **Proximity to transit** — Choose venues near public transportation hubs\n\nShall I help you evaluate a specific venue?";
+  }, [hasAccess, isOpen]);
+
+  // Load conversation history from database
+  const loadConversationHistory = async () => {
+    try {
+      const result = await api.get<{ data: { messages: Message[] } }>('/impact-leader/chat/history');
+      if (result.data && result.data.data && result.data.data.messages) {
+        const historyMessages = result.data.data.messages.map((msg: any, index: number) => ({
+          id: index,
+          role: msg.role,
+          content: msg.content,
+          timestamp: msg.timestamp,
+        }));
+
+        if (historyMessages.length > 0) {
+          setMessages(historyMessages);
+        } else {
+          // Show welcome message if no history
+          setMessages([{
+            id: 0,
+            role: 'assistant',
+            content: "Hi! I'm EcoBot, your AI-powered sustainability assistant. 🌿\n\nI can help you with:\n• Carbon reduction strategies tailored to your events\n• Industry benchmarks and comparisons\n• UN SDG alignment analysis\n• Funding opportunities for sustainable practices\n• Actionable recommendations based on your data\n\nWhat would you like to know?",
+            timestamp: new Date().toISOString(),
+          }]);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load conversation history:', error);
+      // Show welcome message on error
+      setMessages([{
+        id: 0,
+        role: 'assistant',
+        content: "Hi! I'm EcoBot, your AI-powered sustainability assistant. 🌿\n\nI can help you with:\n• Carbon reduction strategies tailored to your events\n• Industry benchmarks and comparisons\n• UN SDG alignment analysis\n• Funding opportunities for sustainable practices\n• Actionable recommendations based on your data\n\nWhat would you like to know?",
+        timestamp: new Date().toISOString(),
+      }]);
     }
-    if (q.includes('zero waste') || q.includes('waste') || q.includes('recycle')) {
-      return "Achieving zero waste is ambitious but achievable! Here's your roadmap:\n\n1. **Digital-first** — Replace all printed materials with QR codes and event apps\n2. **Reusable decor** — Rent decorations or use living plants that can be replanted\n3. **Waste stations** — Set up clearly labeled compost, recycling, and landfill bins\n4. **No swag bags** — Replace with digital gift cards or tree-planting donations\n5. **Composting** — Partner with local composting services for food waste\n6. **Measure & track** — Use waste audits to identify and eliminate waste sources\n\nMany events have achieved 90%+ diversion rates with these strategies!";
-    }
-    if (q.includes('offset') || q.includes('carbon') || q.includes('neutral')) {
-      return "Carbon offsetting is a great complement to reduction efforts:\n\n1. **Calculate first** — Use our calculator to know your exact footprint\n2. **Reduce first, offset the rest** — Offsetting shouldn't replace reduction\n3. **Verified programs** — Look for Gold Standard or VCS certified offsets\n4. **Local projects** — Support reforestation or renewable energy in your region\n5. **Transparency** — Share your offset details with attendees\n\nTypical offset costs: $10-50 per ton of CO₂. For a 100-person event, this might be $50-200.\n\nWant me to calculate your specific offset needs?";
-    }
-    if (q.includes('transport') || q.includes('travel') || q.includes('shuttle')) {
-      return "Transport often accounts for 40-60% of event emissions. Here's how to tackle it:\n\n1. **Shuttle services** — Reduce individual car trips by 40%\n2. **Carpooling platform** — Set up a ride-sharing board for attendees\n3. **Transit incentives** — Offer free transit passes or subsidized rides\n4. **EV charging** — Install temporary charging stations at the venue\n5. **Hybrid options** — Allow remote attendance to reduce travel\n6. **Bike parking** — Encourage cycling with secure bike storage\n\nFor international events, consider carbon-offset flight programs.";
-    }
-    return "That's a great question about sustainable event planning! Here are some general tips:\n\n1. **Start with measurement** — Use our carbon calculator to establish your baseline\n2. **Focus on big wins** — Transport and F&B typically have the largest impact\n3. **Engage attendees** — Share your sustainability goals and get buy-in\n4. **Set targets** — Aim for specific reduction percentages each event\n5. **Document everything** — Track your progress for continuous improvement\n\nFeel free to ask me about specific categories like venue, catering, transport, or materials for detailed recommendations!";
   };
 
-  const handleSend = (text?: string) => {
+  // Load suggested questions from backend
+  const loadSuggestedQuestions = async () => {
+    try {
+      const result = await api.get<{ data: string[] }>('/impact-leader/chat/suggestions');
+      if (result.data) {
+        setSuggestedQuestions(result.data.data);
+      }
+    } catch (error) {
+      console.error('Failed to load suggested questions:', error);
+      // Fallback questions
+      setSuggestedQuestions([
+        'How can I reduce my event\'s carbon footprint?',
+        'What are the UN SDGs and how does my event align with them?',
+        'Show me industry benchmarks for my events',
+        'What funding opportunities are available for sustainable events?',
+      ]);
+    }
+  };
+
+  // Send message to GPT-4 via backend
+  const handleSend = async (text?: string) => {
+    if (!hasAccess) {
+      // Show upgrade prompt
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        role: 'assistant',
+        content: "⭐ AI Assistant requires Impact Leader tier\n\nUpgrade to unlock:\n• Personalized AI recommendations\n• Industry research & benchmarking\n• Advanced analytics & reporting\n• Priority support\n\nClick the upgrade button to get started!",
+        timestamp: new Date().toISOString(),
+      }]);
+      return;
+    }
+
     const messageText = text || input.trim();
     if (!messageText) return;
 
-    const userMsg: Message = { id: Date.now(), role: 'user', content: messageText };
+    const userMsg: Message = { id: Date.now(), role: 'user', content: messageText, timestamp: new Date().toISOString() };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsLoading(true);
 
-    setTimeout(() => {
-      const response = getResponse(messageText);
-      const assistantMsg: Message = { id: Date.now() + 1, role: 'assistant', content: response };
-      setMessages(prev => [...prev, assistantMsg]);
+    try {
+      // Call backend chatbot API - it handles conversation persistence
+      const result = await api.post<{ data: { message: string; timestamp: string; conversationId: string } }>('/impact-leader/chat', {
+        message: messageText,
+      });
+
+      if (result.data) {
+        const assistantMsg: Message = {
+          id: Date.now() + 1,
+          role: 'assistant',
+          content: result.data.data.message,
+          timestamp: result.data.data.timestamp,
+        };
+        setMessages(prev => [...prev, assistantMsg]);
+      } else if (result.error) {
+        setMessages(prev => [...prev, {
+          id: Date.now() + 1,
+          role: 'assistant',
+          content: `⚠️ Sorry, I encountered an error: ${result.error}\n\nPlease try again or contact support if the issue persists.`,
+          timestamp: new Date().toISOString(),
+        }]);
+      }
+    } catch (error) {
+      console.error('Chat error:', error);
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: "⚠️ I'm having trouble connecting right now. Please try again in a moment.",
+        timestamp: new Date().toISOString(),
+      }]);
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
+  };
+
+  // Clear conversation history
+  const handleClearConversation = async () => {
+    if (!hasAccess) return;
+
+    try {
+      const result = await api.delete('/impact-leader/chat');
+      if (result.data) {
+        setMessages([{
+          id: 0,
+          role: 'assistant',
+          content: "Hi! I'm EcoBot, your AI-powered sustainability assistant. 🌿\n\nI can help you with:\n• Carbon reduction strategies tailored to your events\n• Industry benchmarks and comparisons\n• UN SDG alignment analysis\n• Funding opportunities for sustainable practices\n• Actionable recommendations based on your data\n\nWhat would you like to know?",
+          timestamp: new Date().toISOString(),
+        }]);
+      }
+    } catch (error) {
+      console.error('Failed to clear conversation:', error);
+    }
   };
 
   return (
@@ -71,13 +169,18 @@ const AIAssistant: React.FC = () => {
         className={`fixed bottom-6 right-6 z-50 w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl transition-all hover:scale-105 ${
           isOpen
             ? 'bg-gray-700 hover:bg-gray-800'
-            : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-emerald-300'
+            : hasAccess
+            ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-emerald-300'
+            : 'bg-gray-400 hover:bg-gray-500'
         }`}
+        title={hasAccess ? 'Open AI Assistant' : 'AI Assistant (Impact Leader tier required)'}
       >
         {isOpen ? (
           <X className="w-6 h-6 text-white" />
-        ) : (
+        ) : hasAccess ? (
           <MessageCircle className="w-6 h-6 text-white" />
+        ) : (
+          <Lock className="w-6 h-6 text-white" />
         )}
       </button>
 
@@ -85,14 +188,26 @@ const AIAssistant: React.FC = () => {
       {isOpen && (
         <div className="fixed bottom-24 right-6 z-50 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col" style={{ height: '500px' }}>
           {/* Header */}
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-4 flex items-center gap-3">
+          <div className={`p-4 flex items-center gap-3 ${hasAccess ? 'bg-gradient-to-r from-emerald-600 to-teal-600' : 'bg-gradient-to-r from-gray-500 to-gray-600'}`}>
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
+              {hasAccess ? <Sparkles className="w-5 h-5 text-white" /> : <Lock className="w-5 h-5 text-white" />}
             </div>
-            <div>
-              <h4 className="text-white font-semibold">Eco Assistant</h4>
-              <p className="text-emerald-200 text-xs">Powered by AI</p>
+            <div className="flex-1">
+              <h4 className="text-white font-semibold flex items-center gap-2">
+                EcoBot {hasAccess && <Crown className="w-4 h-4 text-yellow-300" />}
+              </h4>
+              <p className={`text-xs ${hasAccess ? 'text-emerald-200' : 'text-gray-300'}`}>
+                {hasAccess ? 'Powered by GPT-4' : 'Impact Leader feature'}
+              </p>
             </div>
+            {!hasAccess && (
+              <button
+                onClick={() => navigate('/pricing')}
+                className="px-3 py-1.5 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-lg text-xs font-semibold transition-colors"
+              >
+                Upgrade
+              </button>
+            )}
           </div>
 
           {/* Messages */}
@@ -104,21 +219,12 @@ const AIAssistant: React.FC = () => {
                     <Bot className="w-4 h-4 text-emerald-600" />
                   </div>
                 )}
-                <div className={`max-w-[80%] p-3 rounded-2xl text-sm leading-relaxed ${
+                <div className={`max-w-[80%] p-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                   msg.role === 'user'
                     ? 'bg-emerald-600 text-white rounded-br-md'
                     : 'bg-gray-100 text-gray-700 rounded-bl-md'
                 }`}>
-                  {msg.content.split('\n').map((line, i) => (
-                    <React.Fragment key={i}>
-                      {line.startsWith('**') ? (
-                        <span dangerouslySetInnerHTML={{ __html: line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
-                      ) : (
-                        line
-                      )}
-                      {i < msg.content.split('\n').length - 1 && <br />}
-                    </React.Fragment>
-                  ))}
+                  {msg.content}
                 </div>
                 {msg.role === 'user' && (
                   <div className="w-7 h-7 bg-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -142,10 +248,10 @@ const AIAssistant: React.FC = () => {
           </div>
 
           {/* Quick questions */}
-          {messages.length <= 1 && (
+          {messages.length <= 1 && suggestedQuestions.length > 0 && hasAccess && (
             <div className="px-4 pb-2">
               <div className="flex flex-wrap gap-1.5">
-                {quickQuestions.map((q, i) => (
+                {suggestedQuestions.map((q, i) => (
                   <button
                     key={i}
                     onClick={() => handleSend(q)}
@@ -168,14 +274,18 @@ const AIAssistant: React.FC = () => {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about sustainable events..."
+                placeholder={hasAccess ? "Ask about sustainable events..." : "Upgrade to unlock AI chat..."}
                 className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                disabled={isLoading}
+                disabled={isLoading || !hasAccess}
               />
               <button
                 type="submit"
-                disabled={!input.trim() || isLoading}
-                className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center text-white hover:from-emerald-600 hover:to-teal-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!input.trim() || isLoading || !hasAccess}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                  hasAccess
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600'
+                    : 'bg-gray-400'
+                }`}
               >
                 <Send className="w-4 h-4" />
               </button>

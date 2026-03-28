@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as impactLeaderController from '../controllers/impact-leader.controller';
+import * as chatbotController from '../controllers/chatbot.controller';
 import { authenticate } from '../middleware/auth';
 import { requireTier } from '../middleware/subscription';
 
@@ -26,18 +27,32 @@ router.get('/dashboard', impactLeaderController.getDashboard);
 router.post('/research', impactLeaderController.generateResearch);
 
 /**
- * @route   POST /api/impact-leader/chat
- * @desc    Chat with AI assistant
+ * @route   GET /api/impact-leader/chat/history
+ * @desc    Get conversation history
  * @access  Impact Leader tier
  */
-router.post('/chat', impactLeaderController.chat);
+router.get('/chat/history', chatbotController.getConversationHistory);
+
+/**
+ * @route   POST /api/impact-leader/chat
+ * @desc    Send message to AI chatbot
+ * @access  Impact Leader tier
+ */
+router.post('/chat', chatbotController.sendMessage);
+
+/**
+ * @route   DELETE /api/impact-leader/chat
+ * @desc    Clear conversation history
+ * @access  Impact Leader tier
+ */
+router.delete('/chat', chatbotController.clearConversation);
 
 /**
  * @route   GET /api/impact-leader/chat/suggestions
  * @desc    Get suggested questions for chatbot
  * @access  Impact Leader tier
  */
-router.get('/chat/suggestions', impactLeaderController.getSuggestedQuestions);
+router.get('/chat/suggestions', chatbotController.getSuggestedQuestions);
 
 /**
  * @route   GET /api/impact-leader/monitor/:eventId
