@@ -162,7 +162,6 @@ const Pricing: React.FC = () => {
           'SLA guarantees (99.9% uptime)',
           'On-premise deployment option',
           'Compliance certifications',
-          'Carbon offset marketplace',
           'Quarterly business reviews',
           'Contact for pricing',
         ],

@@ -13,6 +13,8 @@ import analyticsRoutes from './analytics.routes';
 import recommendationsRoutes from './recommendations.routes';
 import plannerRoutes from './planner.routes';
 import impactLeaderRoutes from './impact-leader.routes';
+import enterpriseRoutes from './enterprise.routes';
+import swaggerRoutes from './swagger.routes';
 
 const router = Router();
 
@@ -20,6 +22,9 @@ const router = Router();
 router.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// API Documentation (Swagger)
+router.use('/docs', swaggerRoutes);
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -36,6 +41,7 @@ router.use('/analytics', analyticsRoutes);
 router.use('/recommendations', recommendationsRoutes);
 router.use('/planner', plannerRoutes);
 router.use('/impact-leader', impactLeaderRoutes);
+router.use('/enterprise', enterpriseRoutes);
 
 export default router;
 
