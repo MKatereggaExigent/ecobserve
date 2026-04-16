@@ -29,149 +29,545 @@ const ApiDocs: React.FC = () => {
 
   const apiEndpoints = [
     {
-      category: 'Events',
-      description: 'Manage events and carbon calculations',
+      category: 'Authentication',
+      description: 'User authentication and account management (OAuth 2.0 / JWT)',
       endpoints: [
         {
-          method: 'GET',
-          path: '/api/events',
-          description: 'List all events for your organization',
-          auth: 'Required',
-          tier: 'Enterprise'
+          method: 'POST',
+          path: '/api/auth/register',
+          description: 'Register a new user account',
+          auth: 'Public',
+          tier: 'All'
         },
         {
           method: 'POST',
-          path: '/api/events',
-          description: 'Create a new event',
-          auth: 'Required',
-          tier: 'Enterprise'
-        },
-        {
-          method: 'GET',
-          path: '/api/events/:id',
-          description: 'Get a specific event by ID',
-          auth: 'Required',
-          tier: 'Enterprise'
-        },
-        {
-          method: 'PUT',
-          path: '/api/events/:id',
-          description: 'Update an event',
-          auth: 'Required',
-          tier: 'Enterprise'
+          path: '/api/auth/login',
+          description: 'Login and receive JWT access token',
+          auth: 'Public',
+          tier: 'All'
         },
         {
           method: 'POST',
-          path: '/api/events/:id/carbon',
-          description: 'Save carbon calculation data for an event',
-          auth: 'Required',
-          tier: 'Enterprise'
+          path: '/api/auth/refresh',
+          description: 'Refresh JWT access token using refresh token',
+          auth: 'Public',
+          tier: 'All'
+        },
+        {
+          method: 'POST',
+          path: '/api/auth/logout',
+          description: 'Logout and invalidate refresh token',
+          auth: 'JWT Required',
+          tier: 'All'
+        },
+        {
+          method: 'GET',
+          path: '/api/auth/me',
+          description: 'Get current user profile and permissions (RBAC)',
+          auth: 'JWT Required',
+          tier: 'All'
+        },
+        {
+          method: 'POST',
+          path: '/api/auth/2fa/setup',
+          description: 'Setup two-factor authentication',
+          auth: 'JWT Required',
+          tier: 'All'
+        },
+        {
+          method: 'POST',
+          path: '/api/auth/2fa/enable',
+          description: 'Enable two-factor authentication',
+          auth: 'JWT Required',
+          tier: 'All'
         }
       ]
     },
     {
-      category: 'Analytics',
-      description: 'Access analytics and reporting data',
+      category: 'Events',
+      description: 'Manage events and carbon calculations (Multi-tenant, RBAC enforced)',
       endpoints: [
         {
           method: 'GET',
-          path: '/api/statistics',
-          description: 'Get organization-wide statistics and KPIs',
-          auth: 'Required',
-          tier: 'Enterprise'
+          path: '/api/events',
+          description: 'List all events (filtered by organization_id, requires event:read permission)',
+          auth: 'JWT + RBAC',
+          tier: 'All tiers'
+        },
+        {
+          method: 'POST',
+          path: '/api/events',
+          description: 'Create event (enforces subscription limits, requires event:create permission)',
+          auth: 'JWT + RBAC',
+          tier: 'All tiers'
         },
         {
           method: 'GET',
-          path: '/api/analytics/conversion',
-          description: 'Get conversion rate statistics',
-          auth: 'Required',
-          tier: 'Enterprise'
+          path: '/api/events/:id',
+          description: 'Get specific event (organization-scoped, requires event:read)',
+          auth: 'JWT + RBAC',
+          tier: 'All tiers'
+        },
+        {
+          method: 'PUT',
+          path: '/api/events/:id',
+          description: 'Update event (requires event:update permission)',
+          auth: 'JWT + RBAC',
+          tier: 'All tiers'
+        },
+        {
+          method: 'DELETE',
+          path: '/api/events/:id',
+          description: 'Delete event (requires event:delete permission)',
+          auth: 'JWT + RBAC',
+          tier: 'All tiers'
+        },
+        {
+          method: 'POST',
+          path: '/api/events/:id/carbon',
+          description: 'Save carbon calculator data for event',
+          auth: 'JWT + RBAC',
+          tier: 'All tiers'
         }
       ]
     },
     {
       category: 'Organizations',
-      description: 'Manage organization settings and members',
+      description: 'Manage organization settings and members (Multi-tenant, RBAC enforced)',
       endpoints: [
         {
           method: 'GET',
-          path: '/api/organizations/:id',
-          description: 'Get organization details',
-          auth: 'Required',
-          tier: 'Enterprise'
+          path: '/api/organizations/mine',
+          description: 'List all organizations user belongs to',
+          auth: 'JWT Required',
+          tier: 'All tiers'
+        },
+        {
+          method: 'POST',
+          path: '/api/organizations',
+          description: 'Create a new organization',
+          auth: 'JWT Required',
+          tier: 'All tiers'
+        },
+        {
+          method: 'GET',
+          path: '/api/organizations/current',
+          description: 'Get current organization details (requires organization:read)',
+          auth: 'JWT + RBAC',
+          tier: 'All tiers'
         },
         {
           method: 'PUT',
-          path: '/api/organizations/:id',
-          description: 'Update organization settings',
-          auth: 'Required',
-          tier: 'Enterprise'
+          path: '/api/organizations/current',
+          description: 'Update current organization (requires organization:update)',
+          auth: 'JWT + RBAC',
+          tier: 'All tiers'
         },
         {
           method: 'GET',
-          path: '/api/organizations/:id/members',
-          description: 'List organization members',
-          auth: 'Required',
-          tier: 'Enterprise'
+          path: '/api/organizations/members',
+          description: 'List organization members (requires organization:read)',
+          auth: 'JWT + RBAC',
+          tier: 'All tiers'
+        },
+        {
+          method: 'POST',
+          path: '/api/organizations/members',
+          description: 'Add member to organization (requires organization:manage_members)',
+          auth: 'JWT + RBAC',
+          tier: 'All tiers'
+        },
+        {
+          method: 'DELETE',
+          path: '/api/organizations/members/:userId',
+          description: 'Remove member from organization (requires organization:manage_members)',
+          auth: 'JWT + RBAC',
+          tier: 'All tiers'
         }
       ]
     },
     {
-      category: 'Subscription',
-      description: 'Check subscription usage and limits',
+      category: 'Payments & Subscriptions',
+      description: 'Payment processing and subscription management',
       endpoints: [
         {
           method: 'GET',
+          path: '/api/payments/plans',
+          description: 'Get all subscription plans (public)',
+          auth: 'Public',
+          tier: 'All'
+        },
+        {
+          method: 'POST',
+          path: '/api/payments/initialize',
+          description: 'Initialize payment for subscription upgrade',
+          auth: 'JWT Required',
+          tier: 'All tiers'
+        },
+        {
+          method: 'GET',
+          path: '/api/payments/verify/:reference',
+          description: 'Verify payment status (requires payment:read)',
+          auth: 'JWT + RBAC',
+          tier: 'All tiers'
+        },
+        {
+          method: 'GET',
+          path: '/api/payments/subscription',
+          description: 'Get current subscription details (requires payment:read)',
+          auth: 'JWT + RBAC',
+          tier: 'All tiers'
+        },
+        {
+          method: 'GET',
+          path: '/api/payments/transactions',
+          description: 'Get payment transaction history (requires payment:read)',
+          auth: 'JWT + RBAC',
+          tier: 'All tiers'
+        },
+        {
+          method: 'POST',
+          path: '/api/payments/subscription/cancel',
+          description: 'Cancel active subscription (requires payment:manage)',
+          auth: 'JWT + RBAC',
+          tier: 'All tiers'
+        },
+        {
+          method: 'POST',
+          path: '/api/payments/subscription/downgrade',
+          description: 'Downgrade subscription tier (requires payment:manage)',
+          auth: 'JWT + RBAC',
+          tier: 'All tiers'
+        },
+        {
+          method: 'GET',
           path: '/api/subscription/usage',
-          description: 'Get current subscription usage statistics',
-          auth: 'Required',
-          tier: 'Enterprise'
+          description: 'Get subscription usage and limits (organization-scoped)',
+          auth: 'JWT + Org Context',
+          tier: 'All tiers'
         }
       ]
     },
     {
-      category: 'Planner Features',
-      description: 'AI recommendations and carbon offsets (Planner tier+)',
+      category: 'Statistics & Analytics',
+      description: 'Platform statistics and analytics (Multi-tenant)',
+      endpoints: [
+        {
+          method: 'GET',
+          path: '/api/statistics',
+          description: 'Get platform-wide public statistics',
+          auth: 'Public',
+          tier: 'All'
+        },
+        {
+          method: 'POST',
+          path: '/api/analytics/track',
+          description: 'Track analytics event (organization-scoped)',
+          auth: 'JWT + Org Context',
+          tier: 'All tiers'
+        },
+        {
+          method: 'GET',
+          path: '/api/analytics/conversion',
+          description: 'Get conversion rate statistics (requires admin:access)',
+          auth: 'JWT + RBAC (Admin)',
+          tier: 'All tiers'
+        },
+        {
+          method: 'GET',
+          path: '/api/analytics/logins',
+          description: 'Get login analytics for organization',
+          auth: 'JWT + Org Context',
+          tier: 'All tiers'
+        }
+      ]
+    },
+    {
+      category: 'User Settings',
+      description: 'User preferences and settings',
+      endpoints: [
+        {
+          method: 'GET',
+          path: '/api/settings/currencies',
+          description: 'Get all supported currencies (public)',
+          auth: 'Public',
+          tier: 'All'
+        },
+        {
+          method: 'GET',
+          path: '/api/settings/exchange-rate/:currency',
+          description: 'Get exchange rate for currency (public)',
+          auth: 'Public',
+          tier: 'All'
+        },
+        {
+          method: 'GET',
+          path: '/api/settings',
+          description: 'Get current user settings',
+          auth: 'JWT Required',
+          tier: 'All tiers'
+        },
+        {
+          method: 'PUT',
+          path: '/api/settings',
+          description: 'Update current user settings',
+          auth: 'JWT Required',
+          tier: 'All tiers'
+        }
+      ]
+    },
+    {
+      category: 'Planner Tier Features',
+      description: 'AI recommendations, certificates, carbon offsets, suppliers (Requires Planner tier+)',
       endpoints: [
         {
           method: 'POST',
           path: '/api/planner/ai-recommendations',
           description: 'Generate AI-powered sustainability recommendations',
-          auth: 'Required',
-          tier: 'Enterprise'
+          auth: 'JWT + Planner Tier',
+          tier: 'Planner+'
+        },
+        {
+          method: 'POST',
+          path: '/api/planner/certificate',
+          description: 'Generate green score certificate for event',
+          auth: 'JWT + Planner Tier',
+          tier: 'Planner+'
+        },
+        {
+          method: 'GET',
+          path: '/api/planner/certificate/:eventId',
+          description: 'Get existing certificate for event',
+          auth: 'JWT + Planner Tier',
+          tier: 'Planner+'
+        },
+        {
+          method: 'POST',
+          path: '/api/planner/tax-incentives',
+          description: 'Calculate South African tax incentives for green events',
+          auth: 'JWT + Planner Tier',
+          tier: 'Planner+'
+        },
+        {
+          method: 'GET',
+          path: '/api/planner/tax-incentives/:eventId',
+          description: 'Get tax incentive calculation for event',
+          auth: 'JWT + Planner Tier',
+          tier: 'Planner+'
         },
         {
           method: 'GET',
           path: '/api/planner/carbon-offsets',
           description: 'Get available carbon offset options',
-          auth: 'Required',
-          tier: 'Enterprise'
+          auth: 'JWT + Planner Tier',
+          tier: 'Planner+'
         },
         {
           method: 'POST',
-          path: '/api/planner/certificate',
-          description: 'Generate green score certificate',
-          auth: 'Required',
-          tier: 'Enterprise'
+          path: '/api/planner/carbon-offsets/purchase',
+          description: 'Purchase carbon offsets for event',
+          auth: 'JWT + Planner Tier',
+          tier: 'Planner+'
+        },
+        {
+          method: 'GET',
+          path: '/api/planner/carbon-offsets/event/:eventId',
+          description: 'Get carbon offset purchases for event',
+          auth: 'JWT + Planner Tier',
+          tier: 'Planner+'
+        },
+        {
+          method: 'GET',
+          path: '/api/planner/carbon-offsets/organization',
+          description: 'Get all organization carbon offset purchases',
+          auth: 'JWT + Planner Tier',
+          tier: 'Planner+'
+        },
+        {
+          method: 'GET',
+          path: '/api/planner/suppliers/search',
+          description: 'Search for sustainable suppliers',
+          auth: 'JWT + Planner Tier',
+          tier: 'Planner+'
+        },
+        {
+          method: 'GET',
+          path: '/api/planner/suppliers/:category',
+          description: 'Get suppliers by category',
+          auth: 'JWT + Planner Tier',
+          tier: 'Planner+'
+        },
+        {
+          method: 'POST',
+          path: '/api/planner/suppliers/event',
+          description: 'Add supplier to event for carbon tracking',
+          auth: 'JWT + Planner Tier',
+          tier: 'Planner+'
+        },
+        {
+          method: 'GET',
+          path: '/api/planner/suppliers/event/:eventId',
+          description: 'Get all suppliers for event',
+          auth: 'JWT + Planner Tier',
+          tier: 'Planner+'
+        },
+        {
+          method: 'POST',
+          path: '/api/planner/benchmarks/compare',
+          description: 'Compare event against industry benchmarks',
+          auth: 'JWT + Planner Tier',
+          tier: 'Planner+'
         }
       ]
     },
     {
-      category: 'Impact Leader Features',
-      description: 'Advanced analytics and AI chatbot (Impact tier+)',
+      category: 'Impact Leader Tier Features',
+      description: 'Advanced analytics, AI chatbot, monitoring (Requires Impact Leader tier+)',
       endpoints: [
         {
           method: 'GET',
           path: '/api/impact-leader/dashboard',
           description: 'Get comprehensive impact dashboard with visual analytics',
-          auth: 'Required',
-          tier: 'Enterprise'
+          auth: 'JWT + Impact Tier',
+          tier: 'Impact Leader+'
         },
         {
           method: 'POST',
           path: '/api/impact-leader/research',
           description: 'Generate AI-powered industry research and benchmarking',
-          auth: 'Required',
+          auth: 'JWT + Impact Tier',
+          tier: 'Impact Leader+'
+        },
+        {
+          method: 'POST',
+          path: '/api/impact-leader/chat',
+          description: 'Send message to AI sustainability chatbot (EcoBot)',
+          auth: 'JWT + Impact Tier',
+          tier: 'Impact Leader+'
+        },
+        {
+          method: 'GET',
+          path: '/api/impact-leader/chat/history',
+          description: 'Get chatbot conversation history',
+          auth: 'JWT + Impact Tier',
+          tier: 'Impact Leader+'
+        },
+        {
+          method: 'DELETE',
+          path: '/api/impact-leader/chat',
+          description: 'Clear chatbot conversation history',
+          auth: 'JWT + Impact Tier',
+          tier: 'Impact Leader+'
+        },
+        {
+          method: 'GET',
+          path: '/api/impact-leader/chat/suggestions',
+          description: 'Get suggested questions for chatbot',
+          auth: 'JWT + Impact Tier',
+          tier: 'Impact Leader+'
+        },
+        {
+          method: 'GET',
+          path: '/api/impact-leader/monitor/:eventId',
+          description: 'Monitor event and get real-time scorecard with alerts',
+          auth: 'JWT + Impact Tier',
+          tier: 'Impact Leader+'
+        },
+        {
+          method: 'POST',
+          path: '/api/impact-leader/reports/generate',
+          description: 'Generate executive sustainability report for board meetings',
+          auth: 'JWT + Impact Tier',
+          tier: 'Impact Leader+'
+        },
+        {
+          method: 'POST',
+          path: '/api/impact-leader/badge/generate',
+          description: 'Generate sustainability badge/certification for website',
+          auth: 'JWT + Impact Tier',
+          tier: 'Impact Leader+'
+        },
+        {
+          method: 'GET',
+          path: '/api/impact-leader/badge/:badgeId/embed',
+          description: 'Get embeddable HTML code for sustainability badge',
+          auth: 'JWT + Impact Tier',
+          tier: 'Impact Leader+'
+        },
+        {
+          method: 'GET',
+          path: '/api/impact-leader/weather',
+          description: 'Get weather data for event location planning',
+          auth: 'JWT + Impact Tier',
+          tier: 'Impact Leader+'
+        }
+      ]
+    },
+    {
+      category: 'Enterprise Tier Features',
+      description: 'Enterprise onboarding, feature requests, QBRs (Requires Enterprise tier)',
+      endpoints: [
+        {
+          method: 'POST',
+          path: '/api/enterprise/onboarding',
+          description: 'Submit enterprise onboarding questionnaire',
+          auth: 'JWT + Org Context',
+          tier: 'Enterprise'
+        },
+        {
+          method: 'GET',
+          path: '/api/enterprise/onboarding/my',
+          description: 'Get my organization\'s onboarding submission',
+          auth: 'JWT + Org Context',
+          tier: 'Enterprise'
+        },
+        {
+          method: 'GET',
+          path: '/api/enterprise/onboarding',
+          description: 'Get all onboarding submissions (Admin only, requires admin:access)',
+          auth: 'JWT + RBAC (Admin)',
+          tier: 'Enterprise'
+        },
+        {
+          method: 'POST',
+          path: '/api/enterprise/feature-requests',
+          description: 'Submit a feature request',
+          auth: 'JWT + Org Context',
+          tier: 'All tiers'
+        },
+        {
+          method: 'GET',
+          path: '/api/enterprise/feature-requests',
+          description: 'Get all feature requests',
+          auth: 'JWT + Org Context',
+          tier: 'All tiers'
+        },
+        {
+          method: 'POST',
+          path: '/api/enterprise/feature-requests/:id/vote',
+          description: 'Vote on a feature request',
+          auth: 'JWT + Org Context',
+          tier: 'All tiers'
+        },
+        {
+          method: 'POST',
+          path: '/api/enterprise/bug-reports',
+          description: 'Submit a bug report',
+          auth: 'JWT + Org Context',
+          tier: 'All tiers'
+        },
+        {
+          method: 'GET',
+          path: '/api/enterprise/bug-reports',
+          description: 'Get bug reports (filtered by permission)',
+          auth: 'JWT + Org Context',
+          tier: 'All tiers'
+        },
+        {
+          method: 'GET',
+          path: '/api/enterprise/quarterly-reviews',
+          description: 'Get quarterly business reviews for organization',
+          auth: 'JWT + Org Context',
           tier: 'Enterprise'
         }
       ]
@@ -293,12 +689,50 @@ const ApiDocs: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-indigo-50 rounded-xl p-4">
-                <h3 className="font-semibold text-gray-900 mb-2">Example Request:</h3>
+              <div className="bg-indigo-50 rounded-xl p-4 mb-4">
+                <h3 className="font-semibold text-gray-900 mb-2">🔐 Authentication Flow (OAuth 2.0 / JWT):</h3>
+                <div className="space-y-2 text-sm text-gray-700">
+                  <p><strong>1. Login:</strong> POST to <code className="bg-white px-2 py-0.5 rounded">/api/auth/login</code> with email & password</p>
+                  <p><strong>2. Receive:</strong> JWT access token (15min expiry) + refresh token</p>
+                  <p><strong>3. Include:</strong> <code className="bg-white px-2 py-0.5 rounded">Authorization: Bearer {'{'}JWT_TOKEN{'}'}</code> in all requests</p>
+                  <p><strong>4. Refresh:</strong> Use refresh token to get new access token when expired</p>
+                  <p><strong>5. RBAC:</strong> JWT contains user permissions - backend validates against resource access</p>
+                </div>
+              </div>
+
+              <div className="bg-emerald-50 rounded-xl p-4 mb-4">
+                <h3 className="font-semibold text-gray-900 mb-2">🏢 Multi-Tenancy & Organization Scoping:</h3>
+                <div className="space-y-2 text-sm text-gray-700">
+                  <p>• All data queries are automatically filtered by <code className="bg-white px-2 py-0.5 rounded">organization_id</code></p>
+                  <p>• JWT contains user's organization context</p>
+                  <p>• Users can only access data from their own organization</p>
+                  <p>• Admin endpoints require <code className="bg-white px-2 py-0.5 rounded">admin:access</code> permission in JWT</p>
+                </div>
+              </div>
+
+              <div className="bg-purple-50 rounded-xl p-4">
+                <h3 className="font-semibold text-gray-900 mb-2">Example Request with JWT:</h3>
                 <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
-{`curl -X GET https://ecobserve.com/api/events \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -H "Content-Type: application/json"`}
+{`# Step 1: Login and get JWT token
+curl -X POST https://ecobserve.com/api/auth/login \\
+  -H "Content-Type: application/json" \\
+  -d '{"email": "user@company.com", "password": "***"}'
+
+# Response:
+# {
+#   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+#   "refreshToken": "...",
+#   "user": {...},
+#   "organization": {...}
+# }
+
+# Step 2: Use JWT token in subsequent requests
+curl -X GET https://ecobserve.com/api/events \\
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \\
+  -H "Content-Type: application/json"
+
+# Returns only events for user's organization (multi-tenant filtering)
+# Requires 'event:read' permission in user's JWT (RBAC)`}
                 </pre>
               </div>
             </div>
