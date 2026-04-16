@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Leaf, TrendingUp, Calendar, User, ExternalLink, Zap, Wind, Sun, Droplets } from 'lucide-react';
+import { Leaf, TrendingUp, Calendar, User, ExternalLink, Zap, Wind, Sun, Droplets, Factory, Car, Recycle, Utensils, Bot, Music } from 'lucide-react';
 import Navbar from '../components/ecobserve/Navbar';
 import Footer from '../components/ecobserve/Footer';
 
@@ -15,7 +15,8 @@ interface BlogPost {
   readTime: string;
   source?: string;
   sourceUrl?: string;
-  image?: string;
+  icon?: any;
+  externalUrl?: string;
 }
 
 const Blog: React.FC = () => {
@@ -42,116 +43,128 @@ const Blog: React.FC = () => {
     try {
       setLoading(true);
 
-      // Fetch CO2 emissions data from CO2 Signal API (free tier)
-      // Note: This is a placeholder - you'll need to sign up for an API key
-      const carbonIntensity = await fetch('https://api.co2signal.com/v1/latest?countryCode=ZA', {
-        headers: {
-          'auth-token': 'demo-key'
+      // Try to fetch CO2 emissions data from public APIs
+      // Note: Most require API keys, so we'll show static educational data for now
+      // Users can click through to the external sources for real-time data
+      try {
+        const response = await fetch('https://api.electricitymap.org/health');
+        if (response.ok) {
+          // API is available - in production, you would fetch real data with an API key
+          setCarbonData({
+            note: 'Live data available at Electricity Maps',
+            url: 'https://www.electricitymaps.com/'
+          });
         }
-      }).catch(() => null);
-
-      if (carbonIntensity && carbonIntensity.ok) {
-        const data = await carbonIntensity.json();
-        setCarbonData(data);
+      } catch (error) {
+        // API unavailable - that's okay, we link to external sources instead
+        console.log('External API unavailable - using direct links to data sources');
       }
 
-      // Generate blog posts from real sustainability data
+      // Generate blog posts from real sustainability data sources
       const generatedPosts: BlogPost[] = [
         {
           id: '1',
-          title: 'South Africa\'s Renewable Energy Revolution: Wind and Solar Leading the Way',
-          excerpt: 'South Africa is experiencing a dramatic shift towards renewable energy, with wind and solar power installations growing by over 300% in recent years.',
-          content: 'The renewable energy sector in South Africa has seen unprecedented growth...',
+          title: 'Global Renewable Energy Statistics & Data',
+          excerpt: 'IRENA provides comprehensive statistics on renewable energy capacity, generation, and investment worldwide. Access real-time data on solar, wind, hydro, and other renewable sources.',
+          content: 'The International Renewable Energy Agency (IRENA) maintains the most comprehensive renewable energy statistics database...',
           category: 'renewable',
           date: new Date().toISOString(),
-          author: 'EcobServe Research Team',
+          author: 'IRENA',
           readTime: '5 min read',
-          source: 'Based on SANEDI & CSIR Data',
-          image: '🌞'
+          source: 'International Renewable Energy Agency',
+          externalUrl: 'https://www.irena.org/Data',
+          icon: Sun
         },
         {
           id: '2',
-          title: 'How Green Events Are Reducing Carbon Emissions by 60%',
-          excerpt: 'Latest research shows that implementing sustainable practices in events can reduce carbon footprints by up to 60%, setting new standards for the industry.',
-          content: 'Event sustainability is no longer optional...',
-          category: 'sustainability',
+          title: 'Live Global Carbon Emissions Data',
+          excerpt: 'Real-time CO2 emissions data from electricity consumption worldwide. Track carbon intensity by country and understand the environmental impact of energy use.',
+          content: 'The CO2 Signal provides real-time carbon intensity data...',
+          category: 'climate',
           date: new Date(Date.now() - 86400000).toISOString(),
-          author: 'Michael Kateregga',
-          readTime: '7 min read',
-          source: 'Industry Research',
-          image: '♻️'
+          author: 'Electricity Maps',
+          readTime: '3 min read',
+          source: 'CO2 Signal API',
+          externalUrl: 'https://www.electricitymaps.com/',
+          icon: Factory
         },
         {
           id: '3',
-          title: 'Cape Town\'s Water-Efficient Event Venues Lead Global Trends',
-          excerpt: 'Cape Town venues are pioneering water conservation techniques that save over 2 million liters annually while hosting world-class events.',
-          content: 'Following the water crisis, Cape Town has emerged as a global leader...',
+          title: 'UN Sustainable Development Goals Progress Tracker',
+          excerpt: 'Track global progress on the 17 UN Sustainable Development Goals with real-time data, indicators, and country-specific achievements.',
+          content: 'The United Nations provides comprehensive SDG tracking...',
           category: 'sustainability',
           date: new Date(Date.now() - 172800000).toISOString(),
-          author: 'EcobServe Team',
+          author: 'United Nations',
           readTime: '6 min read',
-          source: 'Cape Town Water Department',
-          image: '💧'
+          source: 'UN SDG Database',
+          externalUrl: 'https://unstats.un.org/sdgs/dataportal',
+          icon: TrendingUp
         },
         {
           id: '4',
-          title: 'The Rise of Electric Vehicle Fleets in Event Transportation',
-          excerpt: 'Event organizers are rapidly adopting electric vehicles, reducing transportation emissions by 45% compared to traditional diesel shuttles.',
-          content: 'The transportation sector accounts for nearly 30% of event carbon emissions...',
-          category: 'green-energy',
+          title: 'World Air Quality Index - Real-Time Pollution Data',
+          excerpt: 'Access real-time air quality data from over 100 countries. Monitor PM2.5, PM10, ozone, and other pollutants affecting global health and climate.',
+          content: 'The World Air Quality Index provides comprehensive pollution monitoring...',
+          category: 'climate',
           date: new Date(Date.now() - 259200000).toISOString(),
-          author: 'Sustainability Experts',
+          author: 'World Air Quality Index',
           readTime: '4 min read',
-          source: 'EV Industry Report 2026',
-          image: '🚗'
+          source: 'WAQI Open Data Platform',
+          externalUrl: 'https://aqicn.org/data-platform/covid19/',
+          icon: Wind
         },
         {
           id: '5',
-          title: 'Solar-Powered Music Festivals: A New Standard',
-          excerpt: 'Major music festivals across Africa are now powered entirely by solar energy, proving that large-scale events can be 100% renewable.',
-          content: 'Solar technology has advanced to the point where...',
-          category: 'renewable',
+          title: 'Open Climate Data from World Bank',
+          excerpt: 'Comprehensive climate data including temperature trends, precipitation patterns, sea level rise, and greenhouse gas emissions from the World Bank.',
+          content: 'The World Bank Climate Change Knowledge Portal offers extensive datasets...',
+          category: 'climate',
           date: new Date(Date.now() - 345600000).toISOString(),
-          author: 'Energy Innovation Team',
+          author: 'World Bank Group',
           readTime: '5 min read',
-          source: 'Renewable Energy Africa',
-          image: '⚡'
+          source: 'World Bank Climate Data API',
+          externalUrl: 'https://datahelpdesk.worldbank.org/knowledgebase/articles/902061-climate-data-api',
+          icon: TrendingUp
         },
         {
           id: '6',
-          title: 'Zero-Waste Events: From Concept to Reality',
-          excerpt: 'Learn how event planners are achieving zero-waste goals through composting, recycling, and innovative packaging solutions.',
-          content: 'The zero-waste movement has transformed event planning...',
+          title: 'Global Forest Watch - Deforestation Monitoring',
+          excerpt: 'Monitor global forests in near real-time using satellite data. Track deforestation, forest fires, and reforestation efforts worldwide.',
+          content: 'Global Forest Watch uses satellite technology to monitor forests...',
           category: 'sustainability',
           date: new Date(Date.now() - 432000000).toISOString(),
-          author: 'Waste Management Experts',
-          readTime: '8 min read',
-          source: 'Zero Waste International Alliance',
-          image: '🗑️'
+          author: 'World Resources Institute',
+          readTime: '5 min read',
+          source: 'Global Forest Watch',
+          externalUrl: 'https://www.globalforestwatch.org/',
+          icon: Leaf
         },
         {
           id: '7',
-          title: 'Climate-Positive Catering: The Future of Event Food',
-          excerpt: 'Innovative caterers are not just reducing emissions, they\'re actively removing carbon from the atmosphere through regenerative agriculture.',
-          content: 'Climate-positive catering goes beyond carbon neutral...',
-          category: 'climate',
+          title: 'Open Energy Data from IEA',
+          excerpt: 'International Energy Agency provides free access to key energy statistics including consumption, production, prices, and renewable energy trends.',
+          content: 'The IEA maintains the world\'s most comprehensive energy database...',
+          category: 'green-energy',
           date: new Date(Date.now() - 518400000).toISOString(),
-          author: 'Food Sustainability Team',
-          readTime: '6 min read',
-          source: 'Regenerative Agriculture Alliance',
-          image: '🌱'
+          author: 'International Energy Agency',
+          readTime: '4 min read',
+          source: 'IEA Open Data',
+          externalUrl: 'https://www.iea.org/data-and-statistics',
+          icon: Zap
         },
         {
           id: '8',
-          title: 'AI-Powered Energy Optimization in Event Venues',
-          excerpt: 'Artificial intelligence is revolutionizing how venues manage energy consumption, reducing costs by 40% while improving sustainability.',
-          content: 'AI systems can predict and optimize energy usage in real-time...',
-          category: 'green-energy',
+          title: 'NASA Climate Change Data & Visualizations',
+          excerpt: 'NASA provides open-access climate data including global temperature records, ice sheet measurements, sea level data, and atmospheric CO2 levels.',
+          content: 'NASA\'s climate data portal offers decades of satellite observations...',
+          category: 'climate',
           date: new Date(Date.now() - 604800000).toISOString(),
-          author: 'Tech Innovation Team',
-          readTime: '5 min read',
-          source: 'AI for Sustainability Report',
-          image: '🤖'
+          author: 'NASA',
+          readTime: '6 min read',
+          source: 'NASA Climate Data',
+          externalUrl: 'https://climate.nasa.gov/vital-signs/',
+          icon: Sun
         },
       ];
 
@@ -186,35 +199,36 @@ const Blog: React.FC = () => {
             </p>
           </div>
 
-          {/* Real-time Data Banner */}
-          {carbonData && (
-            <div className="mb-8 bg-white rounded-2xl p-6 shadow-lg border border-emerald-100">
-              <div className="flex items-center gap-4 mb-4">
-                <Wind className="w-6 h-6 text-emerald-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Live Carbon Intensity - South Africa</h3>
+          {/* Information Banner */}
+          <div className="mb-8 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 shadow-lg border border-emerald-200">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <TrendingUp className="w-8 h-8 text-emerald-600" />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-emerald-50 rounded-xl p-4">
-                  <p className="text-sm text-gray-600 mb-1">Carbon Intensity</p>
-                  <p className="text-2xl font-bold text-emerald-700">
-                    {carbonData.data?.carbonIntensity || 'N/A'} gCO₂/kWh
-                  </p>
-                </div>
-                <div className="bg-blue-50 rounded-xl p-4">
-                  <p className="text-sm text-gray-600 mb-1">Renewable %</p>
-                  <p className="text-2xl font-bold text-blue-700">
-                    {carbonData.data?.fossilFuelPercentage ? (100 - carbonData.data.fossilFuelPercentage).toFixed(1) : 'N/A'}%
-                  </p>
-                </div>
-                <div className="bg-teal-50 rounded-xl p-4">
-                  <p className="text-sm text-gray-600 mb-1">Last Updated</p>
-                  <p className="text-sm font-medium text-teal-700">
-                    {carbonData.data?.datetime ? new Date(carbonData.data.datetime).toLocaleTimeString() : 'Live'}
-                  </p>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Open-Source Environmental Data
+                </h3>
+                <p className="text-gray-700 mb-3">
+                  All articles link to real, open-source environmental data from trusted organizations including NASA, UN, World Bank, and leading research institutions. Click any card to access live data, statistics, and research.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="px-3 py-1 bg-white rounded-full text-xs font-medium text-emerald-700 border border-emerald-200">
+                    Real-Time Data
+                  </span>
+                  <span className="px-3 py-1 bg-white rounded-full text-xs font-medium text-emerald-700 border border-emerald-200">
+                    Open Source
+                  </span>
+                  <span className="px-3 py-1 bg-white rounded-full text-xs font-medium text-emerald-700 border border-emerald-200">
+                    Verified Sources
+                  </span>
+                  <span className="px-3 py-1 bg-white rounded-full text-xs font-medium text-emerald-700 border border-emerald-200">
+                    Free Access
+                  </span>
                 </div>
               </div>
             </div>
-          )}
+          </div>
 
           {/* Category Filter */}
           <div className="mb-8 flex flex-wrap gap-3 justify-center">
@@ -245,15 +259,18 @@ const Blog: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredPosts.map((post) => (
-                <article
-                  key={post.id}
-                  className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all group cursor-pointer"
-                >
-                  {/* Image/Icon Header */}
-                  <div className="h-48 bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-6xl">
-                    {post.image}
-                  </div>
+              {filteredPosts.map((post) => {
+                const IconComponent = post.icon || Leaf;
+                return (
+                  <article
+                    key={post.id}
+                    onClick={() => post.externalUrl && window.open(post.externalUrl, '_blank')}
+                    className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all group cursor-pointer"
+                  >
+                    {/* Icon Header */}
+                    <div className="h-48 bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                      <IconComponent className="w-24 h-24 text-white" strokeWidth={1.5} />
+                    </div>
 
                   {/* Content */}
                   <div className="p-6">
@@ -283,15 +300,22 @@ const Blog: React.FC = () => {
                       </div>
                     </div>
 
-                    {post.source && (
-                      <div className="flex items-center gap-2 text-xs text-emerald-600 font-medium">
+                    {post.externalUrl && (
+                      <div className="flex items-center gap-2 text-xs text-emerald-600 font-medium mt-2 pt-2 border-t border-gray-100">
                         <ExternalLink className="w-3 h-3" />
-                        <span>{post.source}</span>
+                        <span>Visit {post.source || 'source'} →</span>
+                      </div>
+                    )}
+
+                    {post.source && !post.externalUrl && (
+                      <div className="flex items-center gap-2 text-xs text-gray-500 font-medium mt-2 pt-2 border-t border-gray-100">
+                        <span>Source: {post.source}</span>
                       </div>
                     )}
                   </div>
                 </article>
-              ))}
+              );
+              })}
             </div>
           )}
 
