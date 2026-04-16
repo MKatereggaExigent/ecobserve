@@ -299,8 +299,8 @@ const Terms: React.FC = () => {
               <p><strong>Email:</strong> <a href="mailto:legal@ecobserve.com" className="text-blue-600 hover:text-blue-700">legal@ecobserve.com</a></p>
               <p><strong>General Inquiries:</strong> <a href="mailto:info@ecobserve.com" className="text-blue-600 hover:text-blue-700">info@ecobserve.com</a></p>
               <p><strong>Billing:</strong> <a href="mailto:billing@ecobserve.com" className="text-blue-600 hover:text-blue-700">billing@ecobserve.com</a></p>
-              <p><strong>Address:</strong> 123 Green Street, San Francisco, CA 94102</p>
-              <p><strong>Phone:</strong> <a href="tel:+15551234567" className="text-blue-600 hover:text-blue-700">+1 (555) 123-4567</a></p>
+              <p><strong>Address:</strong> 3 Church Road, Retreat, 7965, Cape Town, South Africa</p>
+              <p><strong>Phone:</strong> <a href="tel:+27690448010" className="text-blue-600 hover:text-blue-700">+27 (069) 044 8010</a></p>
             </div>
           </section>
         </div>

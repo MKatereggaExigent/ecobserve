@@ -23,6 +23,7 @@ import Terms from "./pages/Terms";
 import Cookies from "./pages/Cookies";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import Blog from "./pages/Blog";
 import EnterpriseOnboarding from "./pages/EnterpriseOnboarding";
 import FeatureRequestsBugs from "./pages/FeatureRequestsBugs";
 import NotFound from "./pages/NotFound";
@@ -56,6 +57,7 @@ const App = () => (
                     <Route path="/cookies" element={<Cookies />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/contact" element={<Contact />} />
+                    <Route path="/blog" element={<Blog />} />
                     <Route path="/enterprise/onboarding" element={<EnterpriseOnboarding />} />
                     <Route path="/feature-requests" element={<FeatureRequestsBugs />} />
                     <Route path="*" element={<NotFound />} />

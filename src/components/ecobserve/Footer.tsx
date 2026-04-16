@@ -209,13 +209,13 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               </li>
               <li className="flex items-center gap-2 text-gray-400 text-sm">
                 <Phone className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                <a href="tel:+15551234567" className="hover:text-emerald-400 transition-colors">
-                  +1 (555) 123-4567
+                <a href="tel:+27690448010" className="hover:text-emerald-400 transition-colors">
+                  +27 (069) 044 8010
                 </a>
               </li>
               <li className="flex items-start gap-2 text-gray-400 text-sm">
                 <MapPin className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-                <span>123 Green Street, San Francisco, CA 94102</span>
+                <span>3 Church Road, Retreat, 7965, Cape Town, South Africa</span>
               </li>
             </ul>
           </div>
