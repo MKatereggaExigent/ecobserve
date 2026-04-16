@@ -76,9 +76,9 @@ const Contact: React.FC = () => {
               <h3 className="text-lg font-semibold text-gray-900">Call Us</h3>
             </div>
             <div className="space-y-2 text-gray-600">
-              <p><a href="tel:+15551234567" className="text-emerald-600 hover:text-emerald-700">+1 (555) 123-4567</a></p>
+              <p><a href="tel:+27690448010" className="text-emerald-600 hover:text-emerald-700">+27 (069) 044 8010</a></p>
               <p className="text-sm">Monday - Friday</p>
-              <p className="text-sm">9:00 AM - 6:00 PM PST</p>
+              <p className="text-sm">9:00 AM - 5:00 PM SAST</p>
             </div>
           </div>
 
@@ -90,9 +90,9 @@ const Contact: React.FC = () => {
               <h3 className="text-lg font-semibold text-gray-900">Visit Us</h3>
             </div>
             <div className="text-gray-600">
-              <p>123 Green Street</p>
-              <p>San Francisco, CA 94102</p>
-              <p>United States</p>
+              <p>3 Church Road, Retreat</p>
+              <p>Cape Town, 7965</p>
+              <p>South Africa</p>
             </div>
           </div>
         </div>
@@ -249,7 +249,7 @@ const Contact: React.FC = () => {
                   <div>
                     <h3 className="font-semibold text-gray-900">Sales & Enterprise</h3>
                     <p className="text-sm text-gray-600">sales@ecobserve.com</p>
-                    <p className="text-sm text-gray-600">+1 (555) 123-4569</p>
+                    <p className="text-sm text-gray-600">+27 (069) 044 8010</p>
                   </div>
                 </div>
 
@@ -258,7 +258,7 @@ const Contact: React.FC = () => {
                   <div>
                     <h3 className="font-semibold text-gray-900">Partnerships</h3>
                     <p className="text-sm text-gray-600">partnerships@ecobserve.com</p>
-                    <p className="text-sm text-gray-600">+1 (555) 123-4571</p>
+                    <p className="text-sm text-gray-600">+27 (069) 044 8010</p>
                   </div>
                 </div>
 
@@ -267,31 +267,32 @@ const Contact: React.FC = () => {
                   <div>
                     <h3 className="font-semibold text-gray-900">Press & Media</h3>
                     <p className="text-sm text-gray-600">press@ecobserve.com</p>
-                    <p className="text-sm text-gray-600">+1 (555) 123-4567</p>
+                    <p className="text-sm text-gray-600">+27 (069) 044 8010</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Global Offices */}
-            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl shadow-xl p-8 text-white">
-              <h2 className="text-2xl font-bold mb-6">Global Offices</h2>
-              <div className="space-y-4 text-sm">
-                <div>
-                  <h3 className="font-semibold mb-1">🇺🇸 San Francisco (HQ)</h3>
-                  <p className="text-blue-100">123 Green Street, CA 94102</p>
+            {/* Office Location */}
+            <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl shadow-xl p-8 text-white">
+              <h2 className="text-2xl font-bold mb-6">Our Office</h2>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 mt-1" />
+                  <div>
+                    <h3 className="font-semibold mb-1">🇿🇦 Cape Town Office</h3>
+                    <p className="text-emerald-50">3 Church Road, Retreat</p>
+                    <p className="text-emerald-50">Cape Town, 7965</p>
+                    <p className="text-emerald-50">South Africa</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold mb-1">🇺🇸 New York</h3>
-                  <p className="text-blue-100">456 Sustainability Ave, NY 10001</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1">🇬🇧 London</h3>
-                  <p className="text-blue-100">789 Eco Lane, EC1A 1BB</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1">🇿🇦 Cape Town</h3>
-                  <p className="text-blue-100">321 Green Point, 8001</p>
+                <div className="flex items-start gap-3 pt-4 border-t border-emerald-400/30">
+                  <Clock className="w-5 h-5 mt-1" />
+                  <div>
+                    <h3 className="font-semibold mb-1">Business Hours</h3>
+                    <p className="text-emerald-50">Monday - Friday: 9:00 AM - 5:00 PM SAST</p>
+                    <p className="text-emerald-50">Saturday - Sunday: Closed</p>
+                  </div>
                 </div>
               </div>
             </div>

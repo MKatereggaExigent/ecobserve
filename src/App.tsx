@@ -24,6 +24,9 @@ import Cookies from "./pages/Cookies";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Blog from "./pages/Blog";
+import Careers from "./pages/Careers";
+import Press from "./pages/Press";
+import Partners from "./pages/Partners";
 import EnterpriseOnboarding from "./pages/EnterpriseOnboarding";
 import FeatureRequestsBugs from "./pages/FeatureRequestsBugs";
 import NotFound from "./pages/NotFound";
@@ -58,6 +61,9 @@ const App = () => (
                     <Route path="/about" element={<About />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/blog" element={<Blog />} />
+                    <Route path="/careers" element={<Careers />} />
+                    <Route path="/press" element={<Press />} />
+                    <Route path="/partners" element={<Partners />} />
                     <Route path="/enterprise/onboarding" element={<EnterpriseOnboarding />} />
                     <Route path="/feature-requests" element={<FeatureRequestsBugs />} />
                     <Route path="*" element={<NotFound />} />
