@@ -27,6 +27,7 @@ import Blog from "./pages/Blog";
 import Careers from "./pages/Careers";
 import Press from "./pages/Press";
 import Partners from "./pages/Partners";
+import ApiDocs from "./pages/ApiDocs";
 import EnterpriseOnboarding from "./pages/EnterpriseOnboarding";
 import FeatureRequestsBugs from "./pages/FeatureRequestsBugs";
 import NotFound from "./pages/NotFound";
@@ -64,6 +65,7 @@ const App = () => (
                     <Route path="/careers" element={<Careers />} />
                     <Route path="/press" element={<Press />} />
                     <Route path="/partners" element={<Partners />} />
+                    <Route path="/api-docs" element={<ApiDocs />} />
                     <Route path="/enterprise/onboarding" element={<EnterpriseOnboarding />} />
                     <Route path="/feature-requests" element={<FeatureRequestsBugs />} />
                     <Route path="*" element={<NotFound />} />
