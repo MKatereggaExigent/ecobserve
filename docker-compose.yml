@@ -57,6 +57,11 @@ services:
       DB_SSL: "false"
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_API_ENDPOINT: https://api.openai.com/v1/chat/completions
+      OPENAI_MODEL: gpt-4o
+      OPENAI_MAX_TOKENS: "4000"
+      OPENAI_TEMPERATURE: "0.7"
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-this-in-production-access-secret}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-this-in-production-refresh-secret}
       JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}

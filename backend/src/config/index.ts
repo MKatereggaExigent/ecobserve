@@ -48,10 +48,28 @@ export const config = {
   // Frontend URL (for CORS and redirects)
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
   
-  // Rate limiting
+  // Rate limiting - tiered limits for production at scale
   rateLimit: {
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 500, // limit each IP to 500 requests per windowMs (increased for SPA with multiple API calls)
+    global: {
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: parseInt(process.env.RATE_LIMIT_GLOBAL_MAX || '2000', 10),
+    },
+    auth: {
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: parseInt(process.env.RATE_LIMIT_AUTH_MAX || '10', 10),
+    },
+    passwordReset: {
+      windowMs: 60 * 60 * 1000, // 1 hour
+      max: parseInt(process.env.RATE_LIMIT_PWD_MAX || '3', 10),
+    },
+    authenticated: {
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: parseInt(process.env.RATE_LIMIT_AUTHENTICATED_MAX || '3000', 10),
+    },
+    calculator: {
+      windowMs: 24 * 60 * 60 * 1000, // 24 hours
+      max: parseInt(process.env.RATE_LIMIT_CALC_MAX || '5', 10),
+    },
   },
   
   // Bcrypt

@@ -146,7 +146,7 @@ export async function login(input: LoginInput): Promise<AuthResult> {
   );
 
   if (users.length === 0) {
-    throw new Error('Invalid email or password');
+    throw new Error('No account found with this email. Please sign up first.');
   }
 
   const user = users[0];

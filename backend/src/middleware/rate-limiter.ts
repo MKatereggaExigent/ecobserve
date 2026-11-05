@@ -2,113 +2,118 @@ import rateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import { redisClient } from '../config/redis';
 import { logger } from '../utils/logger';
+import { config } from '../config';
+
+function createStore(prefix: string) {
+  return new RedisStore({
+    // @ts-expect-error - sendCommand types
+    sendCommand: (...args: string[]) => redisClient.call(...args),
+    prefix,
+  });
+}
 
 /**
- * Aggressive rate limiter for authentication endpoints
+ * Tier 1: Global API limiter
+ * Applied to all /api/* routes. Uses Redis for distributed counting.
+ * Prevents general abuse and DDoS.
+ */
+export const globalRateLimiter = rateLimit({
+  windowMs: config.rateLimit.global.windowMs,
+  max: config.rateLimit.global.max,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: createStore('rl:global:'),
+  handler: (req, res) => {
+    logger.warn('Global rate limit exceeded', { ip: req.ip, path: req.path, method: req.method });
+    res.status(429).json({
+      error: 'Too many requests, please try again later',
+      retryAfter: Math.ceil(config.rateLimit.global.windowMs / 1000),
+    });
+  },
+});
+
+/**
+ * Tier 2: Auth limiter - strict limits for authentication endpoints
  * Prevents brute force attacks on login/register
  */
 export const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 attempts per 15 minutes per IP
-  message: {
-    error: 'Too many authentication attempts from this IP, please try again after 15 minutes',
-    retryAfter: 15 * 60 // seconds
-  },
+  windowMs: config.rateLimit.auth.windowMs,
+  max: config.rateLimit.auth.max,
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: true, // Don't count successful logins
-  store: new RedisStore({
-    // @ts-expect-error - RedisStore types are not fully compatible
-    sendCommand: (...args: string[]) => redisClient.call(...args),
-    prefix: 'rl:auth:',
-  }),
+  skipSuccessfulRequests: true,
+  store: createStore('rl:auth:'),
   handler: (req, res) => {
-    logger.warn(`Rate limit exceeded for auth endpoint: ${req.ip} - ${req.path}`);
+    logger.warn('Auth rate limit exceeded', { ip: req.ip, path: req.path });
     res.status(429).json({
       error: 'Too many authentication attempts from this IP, please try again after 15 minutes',
-      retryAfter: 15 * 60,
+      retryAfter: Math.ceil(config.rateLimit.auth.windowMs / 1000),
     });
   },
 });
 
 /**
- * Strict rate limiter for password reset
+ * Tier 3: Password reset limiter - very strict
  * Prevents abuse of password reset functionality
  */
 export const passwordResetRateLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3, // 3 attempts per hour per IP
-  message: {
-    error: 'Too many password reset attempts, please try again after 1 hour',
-    retryAfter: 60 * 60
-  },
+  windowMs: config.rateLimit.passwordReset.windowMs,
+  max: config.rateLimit.passwordReset.max,
   standardHeaders: true,
   legacyHeaders: false,
-  store: new RedisStore({
-    // @ts-expect-error - RedisStore types are not fully compatible
-    sendCommand: (...args: string[]) => redisClient.call(...args),
-    prefix: 'rl:pwd:',
-  }),
+  store: createStore('rl:pwd:'),
   handler: (req, res) => {
-    logger.warn(`Rate limit exceeded for password reset: ${req.ip}`);
+    logger.warn('Password reset rate limit exceeded', { ip: req.ip });
     res.status(429).json({
       error: 'Too many password reset attempts, please try again after 1 hour',
-      retryAfter: 60 * 60,
+      retryAfter: Math.ceil(config.rateLimit.passwordReset.windowMs / 1000),
     });
   },
 });
 
 /**
- * General API rate limiter
- * Prevents API abuse
+ * Tier 4: Authenticated user limiter
+ * Applied to API routes after authentication.
+ * Uses userId as key for precise per-user limiting.
+ * Critical for CGNAT environments where millions share few IPs.
  */
-export const apiRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests per 15 minutes per IP
-  message: {
-    error: 'Too many requests from this IP, please try again later',
-    retryAfter: 15 * 60
-  },
+export const authenticatedRateLimiter = rateLimit({
+  windowMs: config.rateLimit.authenticated.windowMs,
+  max: config.rateLimit.authenticated.max,
   standardHeaders: true,
   legacyHeaders: false,
-  store: new RedisStore({
-    // @ts-expect-error - RedisStore types are not fully compatible
-    sendCommand: (...args: string[]) => redisClient.call(...args),
-    prefix: 'rl:api:',
-  }),
+  store: createStore('rl:user:'),
+  keyGenerator: (req) => {
+    return (req as any).user?.id || req.ip || 'unknown';
+  },
   handler: (req, res) => {
-    logger.warn(`Rate limit exceeded for API: ${req.ip} - ${req.path}`);
+    const userId = (req as any).user?.id || 'unknown';
+    logger.warn('Authenticated rate limit exceeded', { userId, ip: req.ip, path: req.path });
     res.status(429).json({
-      error: 'Too many requests from this IP, please try again later',
-      retryAfter: 15 * 60,
+      error: 'Too many requests, please try again later',
+      retryAfter: Math.ceil(config.rateLimit.authenticated.windowMs / 1000),
     });
   },
 });
 
 /**
- * Strict rate limiter for calculator endpoint
- * Prevents abuse while allowing legitimate Explorer users (1 event/month)
+ * Tier 5: Calculator limiter - daily limit per user
+ * Enforced at the business logic level.
  */
 export const calculatorRateLimiter = rateLimit({
-  windowMs: 24 * 60 * 60 * 1000, // 24 hours
-  max: 5, // 5 calculations per day per IP (generous for testing)
-  message: {
-    error: 'Daily calculation limit reached. Upgrade to Planner for unlimited calculations.',
-    retryAfter: 24 * 60 * 60
-  },
+  windowMs: config.rateLimit.calculator.windowMs,
+  max: config.rateLimit.calculator.max,
   standardHeaders: true,
   legacyHeaders: false,
-  store: new RedisStore({
-    // @ts-expect-error - RedisStore types are not fully compatible
-    sendCommand: (...args: string[]) => redisClient.call(...args),
-    prefix: 'rl:calc:',
-  }),
+  store: createStore('rl:calc:'),
+  keyGenerator: (req) => {
+    return (req as any).user?.id || req.ip || 'unknown';
+  },
   handler: (req, res) => {
-    logger.warn(`Calculator rate limit exceeded: ${req.ip}`);
+    logger.warn('Calculator rate limit exceeded', { ip: req.ip, user: (req as any).user?.id });
     res.status(429).json({
       error: 'Daily calculation limit reached. Upgrade to Planner for unlimited calculations.',
-      retryAfter: 24 * 60 * 60,
+      retryAfter: Math.ceil(config.rateLimit.calculator.windowMs / 1000),
     });
   },
 });
-

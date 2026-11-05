@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as eventController from '../controllers/event.controller';
 import { authenticate, requireOrganization } from '../middleware/auth';
+import { calculatorRateLimiter } from '../middleware/rate-limiter';
 import { loadUserPermissions, requirePermission } from '../middleware/rbac';
 import { enforceSubscriptionLimits, requireActiveSubscription } from '../middleware/subscription';
 
@@ -38,8 +39,8 @@ router.put(
 // DELETE /api/events/:id - Delete event
 router.delete('/:id', requirePermission('event:delete'), eventController.deleteEvent);
 
-// POST /api/events/:id/carbon - Save carbon calculator data
-router.post('/:id/carbon', requirePermission('event:update'), eventController.saveCarbonData);
+// POST /api/events/:id/carbon - Save carbon calculator data (daily limit enforced)
+router.post('/:id/carbon', calculatorRateLimiter, requirePermission('event:update'), eventController.saveCarbonData);
 
 export default router;
 

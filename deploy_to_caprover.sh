@@ -11,7 +11,7 @@ set -e
 # ============================================
 CAPROVER_NAME="aidoc-server"           # Your CapRover server name (run: caprover list)
 CAPROVER_APP="ecobserve"                # CapRover app name
-BACKEND_HOST="41.76.109.131"            # Server's public IP (for API proxy)
+BACKEND_HOST="154.66.199.105"            # Server's public IP (for API proxy)
 BACKEND_PORT="8035"                     # Backend port on host
 TAR_FILE="ecobserve-frontend.tar.gz"    # Deployment artifact name
 

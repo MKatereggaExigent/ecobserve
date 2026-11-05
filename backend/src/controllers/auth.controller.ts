@@ -99,7 +99,7 @@ export async function login(req: Request, res: Response) {
     });
   } catch (error: any) {
     logger.error('Login error:', error);
-    if (error.message === 'Invalid email or password' || error.message === 'Account is deactivated') {
+    if (error.message === 'Invalid email or password' || error.message === 'Account is deactivated' || error.message === 'No account found with this email. Please sign up first.') {
       return res.status(401).json({ error: error.message });
     }
     return res.status(500).json({ error: 'Login failed' });

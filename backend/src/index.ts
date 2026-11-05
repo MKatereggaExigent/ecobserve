@@ -2,12 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import rateLimit from 'express-rate-limit';
 import { config } from './config';
 import { testConnection } from './config/database';
 import { logger } from './utils/logger';
 import routes from './routes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+import { globalRateLimiter } from './middleware/rate-limiter';
 import { configurePassport } from './config/passport';
 import passport from 'passport';
 
@@ -47,15 +47,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Organization-Id'],
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: config.rateLimit.windowMs,
-  max: config.rateLimit.max,
-  message: { error: 'Too many requests, please try again later' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use('/api/', limiter);
+// Rate limiting - Redis-backed distributed sliding window
+app.use('/api/', globalRateLimiter);
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
